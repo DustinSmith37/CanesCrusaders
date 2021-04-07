@@ -36,7 +36,7 @@ class Entity():
         self.yPos+=self.yMove
     def __str__(self):
         return "{},xPos:{},yPos:{},xMove:{},yMove:{},xLength:{},yLength:{}".format(self.file,self.xPos,self.yPos,self.xMove,self.yMove,self.xLength,self.yLength)
-Todd = Entity("ToddGraves1.png",xLength=200,yLength=200)
+Todd = Entity("ToddPNG.png",xLength=200,yLength=200)
 print(entityDisplayList[0])
 
 for i in range(len(entityDisplayList)):
