@@ -61,7 +61,8 @@ class Player(Entity):
         self.direction[move]=state
     def __str__(self):
         return Entity.__str__(self)+",health:{}".format(self.health)
-Todd = Player("ToddPNG.png",xLength=200,yLength=200)
+Todd = Player("ToddPNG.png",xLength=125,yLength=175)
+Aj = Player("AJPNG.png",xLength=125,yLength=175)
 print(entityDisplayList[0])
 
 for i in range(len(entityDisplayList)):
@@ -92,6 +93,7 @@ def mainGameLoop():
                     pygame.quit()
                     gameEnd = True
                     os._exit(1)
+                #Todd's 4 directional movement engaged
                 if event.key == pygame.K_w:
                     Todd.movement("up",True)
                 if event.key == pygame.K_a:
@@ -100,7 +102,17 @@ def mainGameLoop():
                     Todd.movement("down",True)
                 if event.key == pygame.K_d:
                     Todd.movement("right",True)
+                #AJ's 4 directional movement engaged
+                if event.key == pygame.K_UP:
+                    Aj.movement("up",True)
+                if event.key == pygame.K_LEFT:
+                    Aj.movement("left",True)
+                if event.key == pygame.K_DOWN:
+                    Aj.movement("down",True)
+                if event.key == pygame.K_RIGHT:
+                    Aj.movement("right",True)
             if event.type==pygame.KEYUP:
+                #Todd's 4 directional movement disengaged
                 if event.key == pygame.K_w:
                     Todd.movement("up",False)
                 if event.key == pygame.K_a:
@@ -109,7 +121,17 @@ def mainGameLoop():
                     Todd.movement("down",False)
                 if event.key == pygame.K_d:
                     Todd.movement("right",False)
+                #AJ's 4 directional movement disengaged
+                if event.key == pygame.K_UP:
+                    Aj.movement("up",False)
+                if event.key == pygame.K_LEFT:
+                    Aj.movement("left",False)
+                if event.key == pygame.K_DOWN:
+                    Aj.movement("down",False)
+                if event.key == pygame.K_RIGHT:
+                    Aj.movement("right",False)
         playerMove(Todd)
+        playerMove(Aj)
         fps.tick(30)
         for i in range(len(entityDisplayList)):
             gameDisplay.blit(entityDisplayList[i].image,(entityDisplayList[i].xPos,entityDisplayList[i].yPos))
