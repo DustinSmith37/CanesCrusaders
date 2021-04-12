@@ -10,6 +10,8 @@ fps = pygame.time.Clock()
 #display the pygame window, set it to be 800 by 600 and be fullscreen (when not debugging)
 WIDTH = 800
 HEIGHT = 600
+TOPBORDER = 50
+BOTTOMBORDER = HEIGHT-50
 gameDisplay = pygame.display.set_mode((WIDTH,HEIGHT),)#pygame.FULLSCREEN)
 #set its name to be Canes Crusaders
 pygame.display.set_caption('Canes Crusaders')
@@ -19,7 +21,7 @@ enemyList=[]
 bulletList=[]
 class Entity():
     #default stats every asset will have, like the file name, position, movement, and size
-    def __init__(self,file,xPos=0,yPos=0,xMove=5,yMove=5,xLength=50,yLength=50):
+    def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=50,yLength=50):
         self.file=file
         self.xPos=xPos
         self.yPos=yPos
@@ -40,18 +42,18 @@ class Entity():
             self.xPos=WIDTH-self.xLength
     def moveUp(self):
         self.yPos-=self.yMove
-        if self.yPos<0:
-            self.yPos=0
+        if self.yPos<TOPBORDER:
+            self.yPos=TOPBORDER
     def moveDown(self):
         self.yPos+=self.yMove
-        if self.yPos>HEIGHT-self.yLength:
-            self.yPos=HEIGHT-self.yLength
+        if self.yPos>BOTTOMBORDER-self.yLength:
+            self.yPos=BOTTOMBORDER-self.yLength
     def remove(self):
         entityDisplayList.remove(self)
     def __str__(self):
         return "{},xPos:{},yPos:{},xMove:{},yMove:{},xLength:{},yLength:{}".format(self.file,self.xPos,self.yPos,self.xMove,self.yMove,self.xLength,self.yLength)
 class Player(Entity):
-    def __init__(self,file,xPos=0,yPos=0,xMove=5,yMove=5,xLength=50,yLength=50,health=3):
+    def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=50,yLength=50,health=3):
         Entity.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength)
         self.health = health
         self.direction = {"up":False,"left":False,"down":False,"right":False}
@@ -64,11 +66,11 @@ class Player(Entity):
     def __str__(self):
         return Entity.__str__(self)+",health:{}".format(self.health)
 class Enemy(Entity):
-    def __init__(self,file,xPos=0,yPos=0,xMove=5,yMove=5,xLength=50,yLength=50,health=1):
+    def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=5,yMove=50,xLength=50,yLength=50,health=1,direction="right"):
         Entity.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength)
         enemyList.append(self)
         self.health = health
-        self.direction = "left"
+        self.direction = direction
     def autoMove(self):
         if self.direction == "left":
             self.moveLeft()
@@ -85,9 +87,9 @@ class Enemy(Entity):
     def remove(self):
         enemyList.remove(self)
         entityDisplayList.remove(self)
-Background = Entity("CanesBack.jpg",xLength=WIDTH,yLength=HEIGHT)
-Todd = Player("ToddPNG.png",xLength=125,yLength=175)
-Aj = Player("AJPNG.png",xLength=125,yLength=175)
+Background = Entity("CanesBack.jpg",xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
+Todd = Player("ToddPNG.png",xLength=125,yLength=175,xPos=200,yPos=300)
+Aj = Player("AJPNG.png",xLength=125,yLength=175,xPos=600,yPos=300)
 e1 = Enemy("Chick1.png")
 e2 = Enemy("Chick1.png",xPos=60)
 
