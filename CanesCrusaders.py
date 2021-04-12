@@ -15,6 +15,8 @@ gameDisplay = pygame.display.set_mode((WIDTH,HEIGHT),)#pygame.FULLSCREEN)
 pygame.display.set_caption('Canes Crusaders')
 #a master list of all entities that need to be displayed, listed in order of importance
 entityDisplayList=[]
+enemyList=[]
+bulletList=[]
 class Entity():
     #default stats every asset will have, like the file name, position, movement, and size
     def __init__(self,file,xPos=0,yPos=0,xMove=5,yMove=5,xLength=50,yLength=50):
@@ -61,9 +63,33 @@ class Player(Entity):
         self.direction[move]=state
     def __str__(self):
         return Entity.__str__(self)+",health:{}".format(self.health)
+class Enemy(Entity):
+    def __init__(self,file,xPos=0,yPos=0,xMove=5,yMove=5,xLength=50,yLength=50,health=1):
+        Entity.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength)
+        enemyList.append(self)
+        self.health = health
+        self.direction = "left"
+    def autoMove(self):
+        if self.direction == "left":
+            self.moveLeft()
+        elif self.direction == "right":
+            self.moveRight()
+        if self.xPos == 0:
+            self.direction = "right"
+            self.moveDown()
+        elif self.xPos == WIDTH-self.xLength:
+            self.direction = "left"
+            self.moveDown() 
+    def fire(self):
+        pass
+    def remove(self):
+        enemyList.remove(self)
+        entityDisplayList.remove(self)
+Background = Entity("CanesBack.jpg",xLength=WIDTH,yLength=HEIGHT)
 Todd = Player("ToddPNG.png",xLength=125,yLength=175)
 Aj = Player("AJPNG.png",xLength=125,yLength=175)
-print(entityDisplayList[0])
+e1 = Enemy("Chick1.png")
+e2 = Enemy("Chick1.png",xPos=60)
 
 for i in range(len(entityDisplayList)):
     gameDisplay.blit(entityDisplayList[i].image,(entityDisplayList[i].xPos,entityDisplayList[i].yPos))
@@ -133,8 +159,10 @@ def mainGameLoop():
         playerMove(Todd)
         playerMove(Aj)
         fps.tick(30)
-        for i in range(len(entityDisplayList)):
-            gameDisplay.blit(entityDisplayList[i].image,(entityDisplayList[i].xPos,entityDisplayList[i].yPos))
+        for enemy in enemyList:
+            enemy.autoMove()
+        for entity in entityDisplayList:
+            gameDisplay.blit(entity.image,(entity.xPos,entity.yPos))
         pygame.display.flip()
 mainGameLoop()
 
