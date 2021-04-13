@@ -58,7 +58,7 @@ class Player(Entity):
         self.health = health
         self.direction = {"up":False,"left":False,"down":False,"right":False}
     def shoot(self):
-        pass
+        Bullet(file="bulletColorEnemy.jpg",xPos=self.xPos+self.xLength/2,yPos=self.yPos)
     def damaged(self):
         self.health-=1
     def movement(self,move,state):
@@ -87,11 +87,21 @@ class Enemy(Entity):
     def remove(self):
         enemyList.remove(self)
         entityDisplayList.remove(self)
+class Bullet(Entity):
+    def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=5,yLength=10):
+        Entity.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength)
+        entityDisplayList.append(self)
+        bulletList.append(self)
+    def autoMove(self):
+        self.yPos-=self.yMove
+    def remove(self):
+        entityDisplayList.remove(self)
+        bulletList.remove(self)
 Background = Entity("CanesBack.jpg",xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
 Todd = Player("ToddPNG.png",xLength=125,yLength=175,xPos=200,yPos=300)
 Aj = Player("AJPNG.png",xLength=125,yLength=175,xPos=600,yPos=300)
-e1 = Enemy("Chick1.png")
-e2 = Enemy("Chick1.png",xPos=60)
+Enemy("Chick1.png")
+Enemy("Chick1.png",xPos=60)
 
 for i in range(len(entityDisplayList)):
     gameDisplay.blit(entityDisplayList[i].image,(entityDisplayList[i].xPos,entityDisplayList[i].yPos))
@@ -139,6 +149,11 @@ def mainGameLoop():
                     Aj.movement("down",True)
                 if event.key == pygame.K_RIGHT:
                     Aj.movement("right",True)
+                #Todd and AJ's firing (space and enter respectively)
+                if event.key == pygame.K_SPACE:
+                    Todd.shoot()
+                if event.key == pygame.K_RETURN:
+                    Aj.shoot()
             if event.type==pygame.KEYUP:
                 #Todd's 4 directional movement disengaged
                 if event.key == pygame.K_w:
@@ -161,6 +176,8 @@ def mainGameLoop():
         playerMove(Todd)
         playerMove(Aj)
         fps.tick(30)
+        for bullet in bulletList:
+            bullet.autoMove()
         for enemy in enemyList:
             enemy.autoMove()
         for entity in entityDisplayList:
