@@ -17,6 +17,7 @@ gameDisplay = pygame.display.set_mode((WIDTH,HEIGHT),)#pygame.FULLSCREEN)
 pygame.display.set_caption('Canes Crusaders')
 #a master list of all entities that need to be displayed, listed in order of importance
 entityDisplayList=[]
+playerList=[]
 enemyList=[]
 bulletList=[]
 class Entity():
@@ -57,8 +58,9 @@ class Player(Entity):
         Entity.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength)
         self.health = health
         self.direction = {"up":False,"left":False,"down":False,"right":False}
+        playerList.append(self)
     def shoot(self):
-        Bullet(file="bulletColorEnemy.jpg",xPos=self.xPos+self.xLength/2,yPos=self.yPos)
+        Bullet(file="bulletColorPlayer.jpg",xPos=self.xPos+self.xLength/2,yPos=self.yPos)
     def damaged(self):
         self.health-=1
     def movement(self,move,state):
@@ -82,6 +84,10 @@ class Enemy(Entity):
         elif self.xPos == WIDTH-self.xLength:
             self.direction = "left"
             self.moveDown() 
+    def damage(self):
+        self.health -=1
+        if self.health < 0:
+            self.remove()
     def fire(self):
         pass
     def remove(self):
@@ -90,18 +96,32 @@ class Enemy(Entity):
 class Bullet(Entity):
     def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=5,yLength=10):
         Entity.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength)
-        entityDisplayList.append(self)
         bulletList.append(self)
     def autoMove(self):
         self.yPos-=self.yMove
+    def hitDetect(self):
+        for enemy in enemyList:
+            if enemy.xPos+enemy.xLength>self.xPos and enemy.xPos<self.xPos:
+                if enemy.yPos+enemy.yLength>self.yPos and enemy.yPos<self.yPos:
+                    enemy.damage()
+                    self.remove()
+        if self.yPos<=TOPBORDER:
+            self.remove()   
     def remove(self):
-        entityDisplayList.remove(self)
         bulletList.remove(self)
+        entityDisplayList.remove(self)
 Background = Entity("CanesBack.jpg",xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
-Todd = Player("ToddPNG.png",xLength=125,yLength=175,xPos=200,yPos=300)
-Aj = Player("AJPNG.png",xLength=125,yLength=175,xPos=600,yPos=300)
+TopBorder = Entity("black.png",yPos=0,xLength=WIDTH,yLength=TOPBORDER)
+BotBorder = Entity("black.png",yPos=BOTTOMBORDER,yLength=HEIGHT-BOTTOMBORDER,xLength=WIDTH)
+Todd = Player("ToddPNG.png",xLength=50,yLength=50,xPos=200,yPos=300)
+Aj = Player("AJPNG.png",xLength=50,yLength=50,xPos=600,yPos=300)
 Enemy("Chick1.png")
 Enemy("Chick1.png",xPos=60)
+Enemy("Chick1.png",xPos=120)
+Enemy("Chick1.png",xPos=180)
+Enemy("Chick1.png",xPos=240)
+Enemy("Chick1.png",xPos=300)
+Enemy("Chick1.png",xPos=360)
 
 for i in range(len(entityDisplayList)):
     gameDisplay.blit(entityDisplayList[i].image,(entityDisplayList[i].xPos,entityDisplayList[i].yPos))
@@ -115,7 +135,8 @@ def playerMove(player):
         player.moveDown()
     if player.direction["right"]==True:
         player.moveRight()
-    
+def levelCreator(numEnem1,numEnem2,numEnem3,file1,file2,file3,back):
+    pass
     
 
 def mainGameLoop():
@@ -178,6 +199,7 @@ def mainGameLoop():
         fps.tick(30)
         for bullet in bulletList:
             bullet.autoMove()
+            bullet.hitDetect()
         for enemy in enemyList:
             enemy.autoMove()
         for entity in entityDisplayList:
