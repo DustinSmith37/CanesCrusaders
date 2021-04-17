@@ -21,6 +21,9 @@ entityDisplayList=[]
 playerList=[]
 enemyList=[]
 bulletList=[]
+
+
+#entity class
 class Entity():
     #default stats every asset will have, like the file name, position, movement, and size
     def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=50,yLength=50):
@@ -54,6 +57,8 @@ class Entity():
         entityDisplayList.remove(self)
     def __str__(self):
         return "{},xPos:{},yPos:{},xMove:{},yMove:{},xLength:{},yLength:{}".format(self.file,self.xPos,self.yPos,self.xMove,self.yMove,self.xLength,self.yLength)
+        
+#player class
 class Player(Entity):
     def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=50,yLength=50,health=3):
         Entity.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength)
@@ -68,6 +73,8 @@ class Player(Entity):
         self.direction[move]=state
     def __str__(self):
         return Entity.__str__(self)+",health:{}".format(self.health)
+
+#enemy class
 class Enemy(Entity):
     def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=5,yMove=50,xLength=50,yLength=50,health=1,direction="right"):
         Entity.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength)
@@ -94,6 +101,8 @@ class Enemy(Entity):
     def remove(self):
         enemyList.remove(self)
         entityDisplayList.remove(self)
+
+#bullet class
 class Bullet(Entity):
     def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=5,yLength=10):
         Entity.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength)
@@ -111,7 +120,7 @@ class Bullet(Entity):
     def remove(self):
         bulletList.remove(self)
         entityDisplayList.remove(self)
-
+#moves entities into level creator or main game loop
 
     
 def playerMove(player):
@@ -123,23 +132,44 @@ def playerMove(player):
         player.moveDown()
     if player.direction["right"]==True:
         player.moveRight()
-def levelCreator(file1,file2,file3,back):
-    file = file3
+def levelCreator(back,level):
+    
     
     Background = Entity("CanesBack.jpg",xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
     TopBorder = Entity("black.png",yPos=0,xLength=WIDTH,yLength=TOPBORDER)
     BotBorder = Entity("black.png",yPos=BOTTOMBORDER,yLength=HEIGHT-BOTTOMBORDER,xLength=WIDTH)
-    for i in range(0,13):
-        Enemy(file, xPos=(60*i))
+    if(level==1):
+        for i in range(0,13):
+            Enemy("Chick1.png", xPos=(60*i))
+    if(level==2):
+        for i in range(0,13):
+            Enemy("SaladEnemy.png", xPos=(60*i))
+    if(level==3):
+        for i in range(0,13):
+            Enemy("PopEnemy.png", xPos=(60*i))
+
+def wave(level):
+    if(level==1):
+        for i in range(0,13):
+            Enemy("Chick1.png", xPos=(60*i))
+    if(level==2):
+        for i in range(0,13):
+            Enemy("SaladEnemy.png", xPos=(60*i))
+    if(level==3):
+        for i in range(0,13):
+            Enemy("PopEnemy.png", xPos=(60*i))
+
+
 
 def mainGameLoop():
     gameEnd=False
     topClear = False
     difficulty = 5
     waves = 0
-    levelCreator("Chick1.png","SaladEnem.jpg","ToddPNG.png","CanesBack.jpg")
-    Todd = Player("ToddPNG.png",xLength=50,yLength=50,xPos=200,yPos=300)
-    Aj = Player("AJPNG.png",xLength=50,yLength=50,xPos=600,yPos=300)
+    level=2
+    levelCreator("CanesBack.jpg",level)
+    Todd = Player("ToddPNG.png",xLength=50,yLength=50,xPos=200,yPos=500)
+    Aj = Player("AJPNG.png",xLength=50,yLength=50,xPos=600,yPos=500)
 
 
 
@@ -152,13 +182,16 @@ def mainGameLoop():
                 topClear = False
             else:
                 topClear = True
+        
+        if(enemyList==[]):
+            topClear = True
+            
                 
 
         if(waves<=difficulty):
             if(topClear):
-                waves +=1
-                for i in range(0,13):
-                    Enemy("Chick1.png", xPos=(60*i))
+                wave(level)
+                waves+=1
                 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -222,6 +255,8 @@ def mainGameLoop():
             enemy.autoMove()
         for entity in entityDisplayList:
             gameDisplay.blit(entity.image,(entity.xPos,entity.yPos))
+        
+        
         pygame.display.flip()
 
 
