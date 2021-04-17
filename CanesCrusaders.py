@@ -13,6 +13,7 @@ HEIGHT = 600
 TOPBORDER = 50
 BOTTOMBORDER = HEIGHT-50
 gameDisplay = pygame.display.set_mode((WIDTH,HEIGHT),)#pygame.FULLSCREEN)
+
 #set its name to be Canes Crusaders
 pygame.display.set_caption('Canes Crusaders')
 #a master list of all entities that need to be displayed, listed in order of importance
@@ -110,21 +111,8 @@ class Bullet(Entity):
     def remove(self):
         bulletList.remove(self)
         entityDisplayList.remove(self)
-Background = Entity("CanesBack.jpg",xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
-TopBorder = Entity("black.png",yPos=0,xLength=WIDTH,yLength=TOPBORDER)
-BotBorder = Entity("black.png",yPos=BOTTOMBORDER,yLength=HEIGHT-BOTTOMBORDER,xLength=WIDTH)
-Todd = Player("ToddPNG.png",xLength=50,yLength=50,xPos=200,yPos=300)
-Aj = Player("AJPNG.png",xLength=50,yLength=50,xPos=600,yPos=300)
-Enemy("Chick1.png")
-Enemy("Chick1.png",xPos=60)
-Enemy("Chick1.png",xPos=120)
-Enemy("Chick1.png",xPos=180)
-Enemy("Chick1.png",xPos=240)
-Enemy("Chick1.png",xPos=300)
-Enemy("Chick1.png",xPos=360)
 
-for i in range(len(entityDisplayList)):
-    gameDisplay.blit(entityDisplayList[i].image,(entityDisplayList[i].xPos,entityDisplayList[i].yPos))
+
     
 def playerMove(player):
     if player.direction["up"]==True:
@@ -135,13 +123,43 @@ def playerMove(player):
         player.moveDown()
     if player.direction["right"]==True:
         player.moveRight()
-def levelCreator(numEnem1,numEnem2,numEnem3,file1,file2,file3,back):
-    pass
+def levelCreator(file1,file2,file3,back):
+    file = file3
     
+    Background = Entity("CanesBack.jpg",xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
+    TopBorder = Entity("black.png",yPos=0,xLength=WIDTH,yLength=TOPBORDER)
+    BotBorder = Entity("black.png",yPos=BOTTOMBORDER,yLength=HEIGHT-BOTTOMBORDER,xLength=WIDTH)
+    for i in range(0,13):
+        Enemy(file, xPos=(60*i))
 
 def mainGameLoop():
     gameEnd=False
+    topClear = False
+    difficulty = 5
+    waves = 0
+    levelCreator("Chick1.png","SaladEnem.jpg","ToddPNG.png","CanesBack.jpg")
+    Todd = Player("ToddPNG.png",xLength=50,yLength=50,xPos=200,yPos=300)
+    Aj = Player("AJPNG.png",xLength=50,yLength=50,xPos=600,yPos=300)
+
+
+
+    for i in range(len(entityDisplayList)):
+        gameDisplay.blit(entityDisplayList[i].image,(entityDisplayList[i].xPos,entityDisplayList[i].yPos))
     while not(gameEnd):
+        for enemy in enemyList:
+            
+            if(enemy.yPos<=TOPBORDER+enemy.yLength and enemy.yPos>= TOPBORDER):
+                topClear = False
+            else:
+                topClear = True
+                
+
+        if(waves<=difficulty):
+            if(topClear):
+                waves +=1
+                for i in range(0,13):
+                    Enemy("Chick1.png", xPos=(60*i))
+                
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -205,5 +223,7 @@ def mainGameLoop():
         for entity in entityDisplayList:
             gameDisplay.blit(entity.image,(entity.xPos,entity.yPos))
         pygame.display.flip()
+
+
 mainGameLoop()
 
