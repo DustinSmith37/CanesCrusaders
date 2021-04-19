@@ -148,24 +148,24 @@ def levelCreator(back,level):
         for i in range(0,13):
             Enemy("PopEnemy.png", xPos=(60*i))
 
-def wave(level):
+def addEnemy(level):
     if(level==1):
-        for i in range(0,13):
-            Enemy("Chick1.png", xPos=(60*i))
+        
+        Enemy("Chick1.png", xPos=0)
     if(level==2):
-        for i in range(0,13):
-            Enemy("SaladEnemy.png", xPos=(60*i))
+        
+        Enemy("SaladEnemy.png", xPos=0)
     if(level==3):
-        for i in range(0,13):
-            Enemy("PopEnemy.png", xPos=(60*i))
+        
+        Enemy("PopEnemy.png", xPos=0)
 
 
 
 def mainGameLoop():
     gameEnd=False
     topClear = False
-    difficulty = 5
-    waves = 0
+    difficulty = 3
+    enemies = difficulty*10
     level=2
     levelCreator("CanesBack.jpg",level)
     Todd = Player("ToddPNG.png",xLength=50,yLength=50,xPos=200,yPos=500)
@@ -178,7 +178,7 @@ def mainGameLoop():
     while not(gameEnd):
         for enemy in enemyList:
             
-            if(enemy.yPos<=TOPBORDER+enemy.yLength and enemy.yPos>= TOPBORDER):
+            if(enemy.yPos<=TOPBORDER+enemy.yLength and enemy.yPos>= TOPBORDER and enemy.xPos<=enemy.xLength):
                 topClear = False
             else:
                 topClear = True
@@ -188,10 +188,10 @@ def mainGameLoop():
             
                 
 
-        if(waves<=difficulty):
+        if(enemies>0):
             if(topClear):
-                wave(level)
-                waves+=1
+                addEnemy(level)
+                enemies-=1
                 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
