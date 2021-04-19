@@ -164,12 +164,14 @@ def addEnemy(level):
 def mainGameLoop():
     gameEnd=False
     topClear = False
+    Multiplayer = True
     difficulty = 3
     enemies = difficulty*10
     level=2
     levelCreator("CanesBack.jpg",level)
     Todd = Player("ToddPNG.png",xLength=50,yLength=50,xPos=200,yPos=500)
-    Aj = Player("AJPNG.png",xLength=50,yLength=50,xPos=600,yPos=500)
+    if(Multiplayer):
+        Aj = Player("AJPNG.png",xLength=50,yLength=50,xPos=600,yPos=500)
 
 
 
@@ -178,7 +180,7 @@ def mainGameLoop():
     while not(gameEnd):
         for enemy in enemyList:
             
-            if(enemy.yPos<=TOPBORDER+enemy.yLength and enemy.yPos>= TOPBORDER and enemy.xPos<=enemy.xLength):
+            if(enemy.yPos<=TOPBORDER+enemy.yLength and enemy.yPos>= TOPBORDER and enemy.xPos<=enemy.xLength and enemy.xPos>=0 ):
                 topClear = False
             else:
                 topClear = True
@@ -186,8 +188,6 @@ def mainGameLoop():
         if(enemyList==[]):
             topClear = True
             
-                
-
         if(enemies>0):
             if(topClear):
                 addEnemy(level)
@@ -213,19 +213,21 @@ def mainGameLoop():
                 if event.key == pygame.K_d:
                     Todd.movement("right",True)
                 #AJ's 4 directional movement engaged
-                if event.key == pygame.K_UP:
-                    Aj.movement("up",True)
-                if event.key == pygame.K_LEFT:
-                    Aj.movement("left",True)
-                if event.key == pygame.K_DOWN:
-                    Aj.movement("down",True)
-                if event.key == pygame.K_RIGHT:
-                    Aj.movement("right",True)
+                if(Multiplayer):
+                    if event.key == pygame.K_UP:
+                        Aj.movement("up",True)
+                    if event.key == pygame.K_LEFT:
+                        Aj.movement("left",True)
+                    if event.key == pygame.K_DOWN:
+                        Aj.movement("down",True)
+                    if event.key == pygame.K_RIGHT:
+                        Aj.movement("right",True)
                 #Todd and AJ's firing (space and enter respectively)
                 if event.key == pygame.K_SPACE:
                     Todd.shoot()
-                if event.key == pygame.K_RETURN:
-                    Aj.shoot()
+                if(Multiplayer):
+                    if event.key == pygame.K_RETURN:
+                       Aj.shoot()
             if event.type==pygame.KEYUP:
                 #Todd's 4 directional movement disengaged
                 if event.key == pygame.K_w:
@@ -237,16 +239,18 @@ def mainGameLoop():
                 if event.key == pygame.K_d:
                     Todd.movement("right",False)
                 #AJ's 4 directional movement disengaged
-                if event.key == pygame.K_UP:
-                    Aj.movement("up",False)
-                if event.key == pygame.K_LEFT:
-                    Aj.movement("left",False)
-                if event.key == pygame.K_DOWN:
-                    Aj.movement("down",False)
-                if event.key == pygame.K_RIGHT:
-                    Aj.movement("right",False)
+                if(Multiplayer):
+                    if event.key == pygame.K_UP:
+                        Aj.movement("up",False)
+                    if event.key == pygame.K_LEFT:
+                        Aj.movement("left",False)
+                    if event.key == pygame.K_DOWN:
+                        Aj.movement("down",False)
+                    if event.key == pygame.K_RIGHT:
+                        Aj.movement("right",False)
         playerMove(Todd)
-        playerMove(Aj)
+        if(Multiplayer):
+            playerMove(Aj)
         fps.tick(30)
         for bullet in bulletList:
             bullet.autoMove()
