@@ -115,6 +115,7 @@ class Bullet(Entity):
                 if enemy.yPos+enemy.yLength>self.yPos and enemy.yPos<self.yPos:
                     enemy.damage()
                     self.remove()
+                    break
         if self.yPos<=TOPBORDER:
             self.remove()   
     def remove(self):
@@ -133,19 +134,17 @@ def playerMove(player):
     if player.direction["right"]==True:
         player.moveRight()
 def levelCreator(back,level):
-    
-    
-    Background = Entity("CanesBack.jpg",xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
+    Background = Entity(back,xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
     TopBorder = Entity("black.png",yPos=0,xLength=WIDTH,yLength=TOPBORDER)
     BotBorder = Entity("black.png",yPos=BOTTOMBORDER,yLength=HEIGHT-BOTTOMBORDER,xLength=WIDTH)
     if(level==1):
-        for i in range(0,13):
+        for i in range(1,13):
             Enemy("Chick1.png", xPos=(60*i))
     if(level==2):
-        for i in range(0,13):
+        for i in range(1,13):
             Enemy("SaladEnemy.png", xPos=(60*i))
     if(level==3):
-        for i in range(0,13):
+        for i in range(1,13):
             Enemy("PopEnemy.png", xPos=(60*i))
 
 def addEnemy(level):
@@ -180,7 +179,7 @@ def mainGameLoop():
     while not(gameEnd):
         for enemy in enemyList:
             
-            if(enemy.yPos<=TOPBORDER+enemy.yLength and enemy.yPos>= TOPBORDER and enemy.xPos<=enemy.xLength and enemy.xPos>=0 ):
+            if(enemy.yPos<=TOPBORDER+enemy.yLength and enemy.yPos>= TOPBORDER and enemy.xPos<=enemy.xLength+10 and enemy.xPos>=0 ):
                 topClear = False
             else:
                 topClear = True
