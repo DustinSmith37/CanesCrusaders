@@ -97,38 +97,27 @@ class Enemy(Entity):
         self.health -=1
         if self.health < 0:
             self.remove()
-    def fire(self):
-        pass
+
     def remove(self):
         enemyList.remove(self)
         entityDisplayList.remove(self)
 
-class speedEnemy(Entity):
+class speedEnemy(Enemy):
     def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=10,yMove=50,xLength=50,yLength=50,health=1,direction="right"):
-        Entity.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength)
-        enemyList.append(self)
+        Enemy.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength,health,direction)
         self.health = health
-        self.direction = direction
+        self.direction = direction  
+
+class shootEnemy(Enemy):
+    def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=5,yMove=50,xLength=50,yLength=50,health=1,direction="right",bulletSprite=""):
+        Enemy.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength,health,direction)
     def autoMove(self):
         if self.direction == "left":
             self.moveLeft()
         elif self.direction == "right":
             self.moveRight()
-        if self.xPos == 0:
-            self.direction = "right"
-            self.moveDown()
-        elif self.xPos == WIDTH-self.xLength:
-            self.direction = "left"
-            self.moveDown() 
-    def damage(self):
-        self.health -=1
-        if self.health < 0:
-            self.remove()
     def fire(self):
         pass
-    def remove(self):
-        enemyList.remove(self)
-        entityDisplayList.remove(self)
 
 #bullet class
 class Bullet(Entity):
@@ -176,19 +165,19 @@ def levelCreator(back,level):
             Enemy("PopEnemy.png", xPos=(60*i))
 
 def addEnemy(level):
-    chance = randint(0,1)
+    chance = randint(9,10)
     if(level==1):
-        if(chance==1):
+        if(chance==10):
             speedEnemy("Chick1.png",xPos=0)
         else:
             Enemy("Chick1.png", xPos=0)
     if(level==2):
-        if(chance==1):
+        if(chance==10):
             speedEnemy("SaladEnemy.png",xPos=0)
         else:
             Enemy("SaladEnemy.png", xPos=0)
     if(level==3):
-        if(chance==1):
+        if(chance==10):
             speedEnemy("PopEnemy.png",xPos=0)
         else:
             Enemy("PopEnemy.png", xPos=0)
