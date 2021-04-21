@@ -1,6 +1,7 @@
 #import the needed modules, pygame is obvious, time for tick speed,
 #and os for leaving the game without causing errors
 import pygame, time, os
+from random import randint
 #initialize pygame, its font's and it's music player
 pygame.init()
 pygame.font.init()
@@ -102,6 +103,33 @@ class Enemy(Entity):
         enemyList.remove(self)
         entityDisplayList.remove(self)
 
+class speedEnemy(Entity):
+    def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=10,yMove=50,xLength=50,yLength=50,health=1,direction="right"):
+        Entity.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength)
+        enemyList.append(self)
+        self.health = health
+        self.direction = direction
+    def autoMove(self):
+        if self.direction == "left":
+            self.moveLeft()
+        elif self.direction == "right":
+            self.moveRight()
+        if self.xPos == 0:
+            self.direction = "right"
+            self.moveDown()
+        elif self.xPos == WIDTH-self.xLength:
+            self.direction = "left"
+            self.moveDown() 
+    def damage(self):
+        self.health -=1
+        if self.health < 0:
+            self.remove()
+    def fire(self):
+        pass
+    def remove(self):
+        enemyList.remove(self)
+        entityDisplayList.remove(self)
+
 #bullet class
 class Bullet(Entity):
     def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=5,yLength=10):
@@ -148,15 +176,22 @@ def levelCreator(back,level):
             Enemy("PopEnemy.png", xPos=(60*i))
 
 def addEnemy(level):
+    chance = randint(0,1)
     if(level==1):
-        
-        Enemy("Chick1.png", xPos=0)
+        if(chance==1):
+            speedEnemy("Chick1.png",xPos=0)
+        else:
+            Enemy("Chick1.png", xPos=0)
     if(level==2):
-        
-        Enemy("SaladEnemy.png", xPos=0)
+        if(chance==1):
+            speedEnemy("SaladEnemy.png",xPos=0)
+        else:
+            Enemy("SaladEnemy.png", xPos=0)
     if(level==3):
-        
-        Enemy("PopEnemy.png", xPos=0)
+        if(chance==1):
+            speedEnemy("PopEnemy.png",xPos=0)
+        else:
+            Enemy("PopEnemy.png", xPos=0)
 
 
 
