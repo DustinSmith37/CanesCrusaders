@@ -85,7 +85,7 @@ class Player(Entity):
     def heal(self):
         if self.health==0:
             self.alive = True
-            self.health+=1
+        self.health+=1
 
     def tickdown(self):
         self.invincibility -=1
@@ -225,9 +225,12 @@ def playerMove(player):
         player.moveRight()
 
 def levelCreator(back,level,border,ChickDef,SaladDef,PopDef):
-    Entity(back,xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
-    Entity(border,yPos=0,xLength=WIDTH,yLength=TOPBORDER)
-    Entity(border,yPos=BOTTOMBORDER,yLength=HEIGHT-BOTTOMBORDER,xLength=WIDTH)
+    if level == 1:
+        Entity(back,xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
+        Entity(border,yPos=0,xLength=WIDTH,yLength=TOPBORDER)
+        Entity(border,yPos=BOTTOMBORDER,yLength=HEIGHT-BOTTOMBORDER,xLength=WIDTH)
+    else:
+        entityDisplayList[0].image = back
     if(level==1):
         for i in range(1,13):
             Enemy(ChickDef, xPos=(60*i))
@@ -357,15 +360,67 @@ def titleScreen():
         pygame.display.update()
         fps.tick(15)
 def shop():
-    pass
+    ToddShop = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(100,100))
+    AjShop = pygame.transform.scale(pygame.image.load("AJPNG.png"),(100,100))
+    ToddNum = 0
+    AjNum = 0
+    shopping = True
+    while shopping:
+        shopFront = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,BOTTOMBORDER-TOPBORDER))
+        gameDisplay.blit(shopFront,(0,TOPBORDER))
+        Border = pygame.transform.scale(pygame.image.load("black.png"),(WIDTH,50))
+        gameDisplay.blit(Border,(0,0))
+        gameDisplay.blit(Border,(0,BOTTOMBORDER))
+        pointDisplay = medText.render("Points: "+str(points),True,(255,255,255))
+        levelDisplay = medText.render("Level: Shop",True,(255,255,255))
+        gameDisplay.blit(pointDisplay, (590,10))
+        gameDisplay.blit(levelDisplay, (10,10))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                shopping = False
+                os._exit(1)
+            if event.type ==pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    shopping = False
+                    os._exit(1)
+                if event.key == pygame.K_c:
+                    shopping  = False
+                #Todd's selection
+                if event.key == pygame.K_a:
+                    if ToddNum >0:
+                        ToddNum -= 1
+                if event.key == pygame.K_d:
+                    if ToddNum<((WIDTH//100)-1):
+                        ToddNum += 1
+                #AJ's selection
+                if(Multiplayer):
+                    if event.key == pygame.K_LEFT:
+                        if AjNum >0:
+                            AjNum -= 1
+                    if event.key == pygame.K_RIGHT:
+                        if AjNum<((WIDTH//100)-1):
+                            AjNum += 1
+                #Todd and AJ's firing (space and enter respectively)
+                if event.key == pygame.K_SPACE:
+                    pass
+                if(Multiplayer):
+                    if event.key == pygame.K_RETURN:
+                        pass
+        fps.tick(30)
+        gameDisplay.blit(ToddShop,(ToddNum*100,250))
+        if Multiplayer:
+            gameDisplay.blit(AjShop,(AjNum*100,450))
+        pygame.display.flip()
 def lose():
     pass
 def mainGameLoop():
-    print(Multiplayer,difficulty)
     global points
+    global difficulty
     gameEnd=False
     topClear = False
-    enemies = difficulty*10
+    enemies = 13
     #Bullet Sprites
     bulletColorEnemy=pygame.transform.scale(pygame.image.load("bulletColorEnemy.jpg"),(5,10))
     bulletColorPlayer=pygame.transform.scale(pygame.image.load("bulletColorPlayer.jpg"),(5,10))
@@ -387,18 +442,20 @@ def mainGameLoop():
     PopShoot = pygame.transform.scale(pygame.image.load("PopEnemy.png"),(50,50))
     PopLarge = pygame.transform.scale(pygame.image.load("PopEnemy.png"),(100,100))
     #Level Creation
+    global level
     levelCreator(CanesBack,level,Border,ChickDef,SaladDef,PopDef)
     #Player Sprites and creation
     ToddPng = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(50,50))
     AjPng = pygame.transform.scale(pygame.image.load("AJPNG.png"),(50,50))
     hp = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(30,30))
-    Todd = Player(ToddPng,xLength=50,yLength=50,xPos=200,yPos=500,bulletSprite=bulletColorPlayer)
-    for i in range(3):
-        Todd.heal()
-    if(Multiplayer):
-        Aj = Player(AjPng,xLength=50,yLength=50,xPos=600,yPos=500, healthLocation=500,bulletSprite=bulletColorPlayer)
-        for i in range(3):
-            Aj.heal()
+    if level == 1:
+        Todd = Player(ToddPng,xLength=50,yLength=50,xPos=200,yPos=500,bulletSprite=bulletColorPlayer)
+        if(Multiplayer):
+            Aj = Player(AjPng,xLength=50,yLength=50,xPos=600,yPos=500, healthLocation=500,bulletSprite=bulletColorPlayer)
+    else:
+        Todd = playerList[0]
+        if Multiplayer:
+            Aj = playerList[1]
     
 
 
@@ -497,6 +554,16 @@ def mainGameLoop():
             shootEnemy.fire(enemy)
         for player in playerList:
             player.hitDetect()
+        if enemyList == []:
+            for bullet in range(len(bulletList)):
+                bulletList[0].remove()
+            shop()
+            level += 1
+            difficulty += 1
+            enemies = difficulty * 13
+            print(level)
+            levelCreator(CanesBack, level, Border, ChickDef, SaladDef, PopDef)
+            
             
         for entity in entityDisplayList:
             gameDisplay.blit(entity.image,(entity.xPos,entity.yPos))
@@ -508,8 +575,11 @@ def mainGameLoop():
                 gameDisplay.blit(hp,(player.healthLocation+i*50,BOTTOMBORDER+10))
         if collectiveHealth <= 0:
             break
-        if enemyList == []:
-            shop()
+        
+        pointDisplay = medText.render("Points: "+str(points),True,(255,255,255))
+        levelDisplay = medText.render("Level: " +str(level), True,(255,255,255))
+        gameDisplay.blit(pointDisplay, (590,10))
+        gameDisplay.blit(levelDisplay, (10,10))
         pygame.display.flip()
         
 #IMPORT DATA: GOVERNS ENTIRE GAME, BOTH IN LEVEL, SHOP, AND LOSE SCREEN
