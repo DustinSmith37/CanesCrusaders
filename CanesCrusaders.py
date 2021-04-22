@@ -22,6 +22,7 @@ entityDisplayList=[]
 playerList=[]
 enemyList=[]
 bulletList=[]
+shootList=[]
 
 
 #entity class
@@ -64,12 +65,24 @@ class Player(Entity):
     def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=50,yLength=50,health=3):
         Entity.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength)
         self.health = health
+        self.invincibility = 0
         self.direction = {"up":False,"left":False,"down":False,"right":False}
         playerList.append(self)
     def shoot(self):
         Bullet(file="bulletColorPlayer.jpg",xPos=self.xPos+self.xLength/2,yPos=self.yPos)
-    def damaged(self):
-        self.health-=1
+    def damage(self):
+        if(self.invincibility==0):
+            self.health-=1
+            self.invincibility = 30
+        else:
+            pass
+        if(self.health==0):
+            playerList.remove(self)
+            entityDisplayList.remove(self)
+
+    def tickdown(self):
+        self.invincibility -=1
+        
     def movement(self,move,state):
         self.direction[move]=state
     def __str__(self):
@@ -105,19 +118,30 @@ class Enemy(Entity):
 class speedEnemy(Enemy):
     def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=10,yMove=50,xLength=50,yLength=50,health=1,direction="right"):
         Enemy.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength,health,direction)
-        self.health = health
-        self.direction = direction  
+ 
 
 class shootEnemy(Enemy):
     def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=5,yMove=50,xLength=50,yLength=50,health=1,direction="right",bulletSprite=""):
         Enemy.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength,health,direction)
+        shootList.append(self)
+
     def autoMove(self):
         if self.direction == "left":
             self.moveLeft()
         elif self.direction == "right":
             self.moveRight()
+        if self.xPos == 0:
+            self.direction = "right"
+        elif self.xPos == WIDTH-self.xLength:
+            self.direction = "left"
     def fire(self):
-        pass
+        shot = randint(0,30)
+        if(shot==30):
+            enemyBullet(file="bulletColorEnemy.jpg",xPos=self.xPos+self.xLength/2,yPos=self.yPos)
+    def remove(self):
+        enemyList.remove(self)
+        shootList.remove(self)
+        entityDisplayList.remove(self)
 
 #bullet class
 class Bullet(Entity):
@@ -139,7 +163,24 @@ class Bullet(Entity):
         bulletList.remove(self)
         entityDisplayList.remove(self)
 #moves entities into level creator or main game loop
-
+class enemyBullet(Entity):
+    def __init__(self,file,xPos=0,yPos=TOPBORDER,xMove=5,yMove=-5,xLength=5,yLength=10):
+        Entity.__init__(self,file,xPos,yPos,xMove,yMove,xLength,yLength)
+        bulletList.append(self)
+    def autoMove(self):
+        self.yPos-=self.yMove
+    def hitDetect(self):
+        for player in playerList:
+            if player.xPos+player.xLength>self.xPos and player.xPos<self.xPos:
+                if player.yPos+player.yLength>self.yPos and player.yPos<self.yPos:
+                    player.damage()
+                    self.remove()
+                    break
+        if (self.yPos<=(self.yPos==BOTTOMBORDER-self.yLength)):
+            self.remove()   
+    def remove(self):
+        bulletList.remove(self)
+        entityDisplayList.remove(self)
     
 def playerMove(player):
     if player.direction["up"]==True:
@@ -165,20 +206,32 @@ def levelCreator(back,level):
             Enemy("PopEnemy.png", xPos=(60*i))
 
 def addEnemy(level):
-    chance = randint(9,10)
+    chance = randint(0,20)
     if(level==1):
-        if(chance==10):
+        if(chance in [16,17]):
             speedEnemy("Chick1.png",xPos=0)
+            Enemy("Chick1.png", xPos=0)
+        elif(chance in [18,19]):
+            shootEnemy("Chick1.png", xPos=0)
+            Enemy("Chick1.png", xPos=0)
         else:
             Enemy("Chick1.png", xPos=0)
     if(level==2):
-        if(chance==10):
+        if(chance in [16,17]):
             speedEnemy("SaladEnemy.png",xPos=0)
+            Enemy("SaladEnemy.png", xPos=0)
+        elif(chance in [18,19]):
+            shootEnemy("SaladEnemy.png", xPos=0)
+            Enemy("SaladEnemy.png", xPos=0)
         else:
             Enemy("SaladEnemy.png", xPos=0)
     if(level==3):
-        if(chance==10):
+        if(chance in [16,17]):
             speedEnemy("PopEnemy.png",xPos=0)
+            Enemy("PopEnemy.png", xPos=0)
+        elif(chance in [18,19]):
+            shootEnemy("PopEnemy.png", xPos=0)
+            Enemy("PopEnemy.png", xPos=0)
         else:
             Enemy("PopEnemy.png", xPos=0)
 
@@ -227,30 +280,34 @@ def mainGameLoop():
                     gameEnd = True
                     os._exit(1)
                 #Todd's 4 directional movement engaged
-                if event.key == pygame.K_w:
-                    Todd.movement("up",True)
-                if event.key == pygame.K_a:
-                    Todd.movement("left",True)
-                if event.key == pygame.K_s:
-                    Todd.movement("down",True)
-                if event.key == pygame.K_d:
-                    Todd.movement("right",True)
+                if(Todd.health>0):
+                    if event.key == pygame.K_w:
+                        Todd.movement("up",True)
+                    if event.key == pygame.K_a:
+                        Todd.movement("left",True)
+                    if event.key == pygame.K_s:
+                        Todd.movement("down",True)
+                    if event.key == pygame.K_d:
+                        Todd.movement("right",True)
                 #AJ's 4 directional movement engaged
                 if(Multiplayer):
-                    if event.key == pygame.K_UP:
-                        Aj.movement("up",True)
-                    if event.key == pygame.K_LEFT:
-                        Aj.movement("left",True)
-                    if event.key == pygame.K_DOWN:
-                        Aj.movement("down",True)
-                    if event.key == pygame.K_RIGHT:
-                        Aj.movement("right",True)
+                    if(Aj.health>0):
+                        if event.key == pygame.K_UP:
+                            Aj.movement("up",True)
+                        if event.key == pygame.K_LEFT:
+                            Aj.movement("left",True)
+                        if event.key == pygame.K_DOWN:
+                            Aj.movement("down",True)
+                        if event.key == pygame.K_RIGHT:
+                            Aj.movement("right",True)
                 #Todd and AJ's firing (space and enter respectively)
-                if event.key == pygame.K_SPACE:
-                    Todd.shoot()
+                if(Todd.health>0):
+                    if event.key == pygame.K_SPACE:
+                        Todd.shoot()
                 if(Multiplayer):
-                    if event.key == pygame.K_RETURN:
-                       Aj.shoot()
+                    if(Aj.health>0):
+                        if event.key == pygame.K_RETURN:
+                            Aj.shoot()
             if event.type==pygame.KEYUP:
                 #Todd's 4 directional movement disengaged
                 if event.key == pygame.K_w:
@@ -280,6 +337,11 @@ def mainGameLoop():
             bullet.hitDetect()
         for enemy in enemyList:
             enemy.autoMove()
+        for player in playerList:
+            if(player.invincibility>0):
+                player.tickdown()
+        for enemy in shootList:
+            shootEnemy.fire(enemy)
         for entity in entityDisplayList:
             gameDisplay.blit(entity.image,(entity.xPos,entity.yPos))
         
