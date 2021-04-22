@@ -186,6 +186,8 @@ class Bullet(Entity):
                 if enemy.yPos+enemy.yLength>self.yPos and enemy.yPos<self.yPos:
                     enemy.damage()
                     self.remove()
+                    global points
+                    points +=10
                     break
         if self.yPos<=TOPBORDER:
             self.remove()   
@@ -221,10 +223,11 @@ def playerMove(player):
         player.moveDown()
     if player.direction["right"]==True:
         player.moveRight()
+
 def levelCreator(back,level,border,ChickDef,SaladDef,PopDef):
-    Background = Entity(back,xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
-    TopBorder = Entity(border,yPos=0,xLength=WIDTH,yLength=TOPBORDER)
-    BotBorder = Entity(border,yPos=BOTTOMBORDER,yLength=HEIGHT-BOTTOMBORDER,xLength=WIDTH)
+    Entity(back,xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
+    Entity(border,yPos=0,xLength=WIDTH,yLength=TOPBORDER)
+    Entity(border,yPos=BOTTOMBORDER,yLength=HEIGHT-BOTTOMBORDER,xLength=WIDTH)
     if(level==1):
         for i in range(1,13):
             Enemy(ChickDef, xPos=(60*i))
@@ -273,22 +276,102 @@ def addEnemy(level,ChickDef,ChickFast,ChickShoot,ChickLarge,SaladDef,SaladFast,S
             Enemy(PopDef,xPos=0)
         else:
             Enemy(PopDef, xPos=0)
+def titleScreen():
+    #assets for title screen
+    global Multiplayer
+    background = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,HEIGHT))
+    guide = pygame.transform.scale(pygame.image.load("CanesBack.jpg"),(WIDTH-200,HEIGHT-200))
+    toddTitle = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(200,200))
+    ajTitle = pygame.transform.scale(pygame.image.load("AJPNG.png"),(200,200))
+    gameStart = False
+    stage = "start"
+    while not gameStart:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                gameStart = True
+                os._exit(1)
+            elif event.type == pygame.KEYDOWN:
+                if (event.key == pygame.K_RETURN or event.key == pygame.K_SPACE) and (stage == "guide") :
+                    if Multiplayer:
+                        stage = "inform2"
+                    else:
+                        stage = "inform1"
+                if (event.key == pygame.K_e or event.key == pygame.K_BACKSLASH)and(stage == "inform1" or stage == "inform2"):
+                    gameStart = True
+                if event.key == pygame.K_1:
+                    stage = "guide"
+                    Multiplayer = False
+                elif event.key == pygame.K_2:
+                    stage = "guide"
+                    Multiplayer = True
+                #elif event.key
+        gameDisplay.blit(background,(0,0))
+        if stage == "start":
+            line1 = bigText.render("CANES CRUSADERS",True,(255,255,255))
+            gameDisplay.blit(line1,(100,150))
+            line2 = medText.render("THE GREAT CHICKEN WARS",True,(255,0,0))
+            gameDisplay.blit(line2,(160,220))
+            gameDisplay.blit(toddTitle,(300,350))
+            line2 = medText.render("SELECT NUMBER OF PLAYERS TO CONTINUE",True,(255,0,0))
+            gameDisplay.blit(line2,(15,260))
 
-
-
+        if stage == "inform2":
+            line1 = bigText.render("MEET YOUR HEROES",True,(255,255,255))
+            gameDisplay.blit(line1,(90,50))
+            line2 = medText.render("TODD GRAVES",True,(255,255,255))
+            gameDisplay.blit(line2,(70,250))
+            line3 = medText.render("GOD KING OF",True,(255,255,255))
+            gameDisplay.blit(line3,(80,300))
+            line4 = medText.render("AJ",True,(255,255,255))
+            gameDisplay.blit(line4,(600,250))
+            line5 = medText.render("ANGEL OF",True,(255,255,255))
+            gameDisplay.blit(line5,(550,300))
+            line6 = medText.render("CHICKEN",True,(255,255,255))
+            gameDisplay.blit(line6,(550,350))
+            line7 = medText.render("MANKIND",True,(255,255,255))
+            gameDisplay.blit(line7,(110,350))
+            line8 = medText.render("PRESS ANY BUTTON TO CONTINUE",True,(255,0,0))
+            gameDisplay.blit(line8,(100,120))
+            gameDisplay.blit(toddTitle,(100,400))
+            gameDisplay.blit(ajTitle,(500,400))
+        
+        if stage == "inform1":
+            line1 = bigText.render("MEET YOUR HERO",True,(255,255,255))
+            gameDisplay.blit(line1,(120,50))
+            line2 = medText.render("TODD GRAVES",True,(255,255,255))
+            gameDisplay.blit(line2,(70,250))
+            line3 = medText.render("GOD KING OF",True,(255,255,255))
+            gameDisplay.blit(line3,(80,300))
+            line6 = medText.render("PRESS ANY BUTTON TO CONTINUE",True,(255,0,0))
+            gameDisplay.blit(line6,(100,120))
+            line7 = medText.render("MANKIND",True,(255,255,255))
+            gameDisplay.blit(line7,(110,350))
+            gameDisplay.blit(toddTitle,(100,400))
+        
+        if stage == "guide":
+            line1 = bigText.render("HOW TO PLAY",True,(255,255,255))
+            gameDisplay.blit(line1,(120,50))
+            gameDisplay.blit(guide,(100,100))
+            
+        pygame.display.update()
+        fps.tick(15)
+def shop():
+    pass
+def lose():
+    pass
 def mainGameLoop():
+    print(Multiplayer,difficulty)
+    global points
     gameEnd=False
     topClear = False
-    Multiplayer = True
-    difficulty = 3
     enemies = difficulty*10
     #Bullet Sprites
     bulletColorEnemy=pygame.transform.scale(pygame.image.load("bulletColorEnemy.jpg"),(5,10))
     bulletColorPlayer=pygame.transform.scale(pygame.image.load("bulletColorPlayer.jpg"),(5,10))
-    level=3
     #Background Sprites
-    CanesBack = pygame.transform.scale(pygame.image.load("CanesBack.jpg"),(800,BOTTOMBORDER-TOPBORDER))
-    Border = pygame.transform.scale(pygame.image.load("black.png"),(800,50))
+    CanesBack = pygame.transform.scale(pygame.image.load("CanesBack.jpg"),(WIDTH,BOTTOMBORDER-TOPBORDER))
+    Border = pygame.transform.scale(pygame.image.load("black.png"),(WIDTH,50))
     
     #Enemy Sprites
     ChickDef = pygame.transform.scale(pygame.image.load("Chick1.png"),(50,50))
@@ -323,6 +406,7 @@ def mainGameLoop():
     for i in range(len(entityDisplayList)):
         gameDisplay.blit(entityDisplayList[i].image,(entityDisplayList[i].xPos,entityDisplayList[i].yPos))
     while not(gameEnd):
+        print (points)
         for enemy in enemyList:
             
             if(enemy.yPos<=TOPBORDER+enemy.yLength and enemy.yPos>= TOPBORDER and enemy.xPos<=enemy.xLength+10 and enemy.xPos>=0 ):
@@ -416,14 +500,35 @@ def mainGameLoop():
             
         for entity in entityDisplayList:
             gameDisplay.blit(entity.image,(entity.xPos,entity.yPos))
+            
+        collectiveHealth = 0
         for player in playerList:
             for i in range(player.health):
+                collectiveHealth += 1
                 gameDisplay.blit(hp,(player.healthLocation+i*50,BOTTOMBORDER+10))
-        
-        
+        if collectiveHealth <= 0:
+            break
+        if enemyList == []:
+            shop()
         pygame.display.flip()
         
+#IMPORT DATA: GOVERNS ENTIRE GAME, BOTH IN LEVEL, SHOP, AND LOSE SCREEN
+global Multiplayer 
+Multiplayer = True
+global difficulty 
+difficulty= 3
+global level 
+level = 1
+global points 
+points = 0
+#TEXT ASSETS, these will never change so are global usage (because screw passing these into every single game window)
+global bigText
+bigText = pygame.font.SysFont('Arial MS', 90)
+global medText
+medText = pygame.font.SysFont('Arial MS', 50)
+global tinyText
+tinyText = pygame.font.SysFont('Arial MS', 25)
 
-
+titleScreen()
 mainGameLoop()
-
+lose()
