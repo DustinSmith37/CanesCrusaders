@@ -241,44 +241,20 @@ def levelCreator(back,level,border,ChickDef,SaladDef,PopDef):
         for i in range(1,13):
             Enemy(PopDef, xPos=(60*i))
 
-def addEnemy(level,ChickDef,ChickFast,ChickShoot,ChickLarge,SaladDef,SaladFast,SaladShoot,SaladLarge,PopDef,PopFast,PopShoot,PopLarge,bulletColorEnemy):
+def addEnemy(Def,Fast,Shooter,Large,bulletColorEnemy):
     chance = randint(0,20)
-    if(level==1):
-        if(chance in [16,17]):
-            speedEnemy(ChickFast,xPos=0)
-            Enemy(ChickDef, xPos=0)
-        elif(chance in [18,19]):
-            shootEnemy(ChickShoot, xPos=0,bulletSprite=bulletColorEnemy)
-            Enemy(ChickDef, xPos=0)
-        elif(chance in [20]):
-            tankEnemy(ChickLarge,xPos=randint(0,700))
-            Enemy(ChickDef,xPos=0)
-        else:
-            Enemy(ChickDef, xPos=0)
-    if(level==2):
-        if(chance in [16,17]):
-            speedEnemy(SaladFast,xPos=0)
-            Enemy(SaladDef, xPos=0)
-        elif(chance in [18,19]):
-            shootEnemy(SaladShoot, xPos=0,bulletSprite=bulletColorEnemy)
-            Enemy(SaladDef, xPos=0)
-        elif(chance in [20]):
-            tankEnemy(SaladLarge,xPos=randint(0,700))
-            Enemy(SaladDef,xPos=0)
-        else:
-            Enemy(SaladDef, xPos=0)
-    if(level==3):
-        if(chance in [16,17]):
-            speedEnemy(PopFast,xPos=0)
-            Enemy(PopDef, xPos=0)
-        elif(chance in [18,19]):
-            shootEnemy(PopShoot, xPos=0,bulletSprite=bulletColorEnemy)
-            Enemy(PopDef, xPos=0)
-        elif(chance in [20]):
-            tankEnemy(PopLarge,xPos=randint(0,700))
-            Enemy(PopDef,xPos=0)
-        else:
-            Enemy(PopDef, xPos=0)
+    if(chance in [16,17]):
+        speedEnemy(Fast,xPos=0)
+        Enemy(Def, xPos=0)
+    elif(chance in [18,19]):
+        shootEnemy(Shooter, xPos=0,bulletSprite=bulletColorEnemy)
+        Enemy(Def, xPos=0)
+    elif(chance in [20]):
+        tankEnemy(Large,xPos=randint(0,700))
+        Enemy(Def,xPos=0)
+    else:
+        Enemy(Def, xPos=0)
+    
 def titleScreen():
     #assets for title screen
     global Multiplayer
@@ -441,13 +417,28 @@ def mainGameLoop():
     PopFast = pygame.transform.scale(pygame.image.load("PopEnemy.png"),(50,50))
     PopShoot = pygame.transform.scale(pygame.image.load("PopEnemy.png"),(50,50))
     PopLarge = pygame.transform.scale(pygame.image.load("PopEnemy.png"),(100,100))
+
+    BBWDef = pygame.transform.scale(pygame.image.load("BDubsPNG.png"),(50,50))
+    BBWFast = pygame.transform.scale(pygame.image.load("BDubsPNG.png"),(50,50))
+    BBWShoot = pygame.transform.scale(pygame.image.load("BDubsPNG.png"),(50,50))
+    BBWLarge = pygame.transform.scale(pygame.image.load("BDubsPNG.png"),(100,100))
+
+    ChurchDef = pygame.transform.scale(pygame.image.load("ChurchChick.png"),(50,50))
+    ChurchFast = pygame.transform.scale(pygame.image.load("ChurchChick.png"),(50,50))
+    ChurchShoot = pygame.transform.scale(pygame.image.load("ChurchChick.png"),(50,50))
+    ChurchLarge = pygame.transform.scale(pygame.image.load("ChurchChick.png"),(100,100))
+
+    ZaxbyDef = pygame.transform.scale(pygame.image.load("ZaxbyPNG.png"),(50,50))
+    ZaxbyFast = pygame.transform.scale(pygame.image.load("ZaxbyPNG.png"),(50,50))
+    ZaxbyShoot = pygame.transform.scale(pygame.image.load("ZaxbyPNG.png"),(50,50))
+    ZaxbyLarge = pygame.transform.scale(pygame.image.load("ZaxbyPNG.png"),(100,100))
     #Level Creation
     global level
     levelCreator(CanesBack,level,Border,ChickDef,SaladDef,PopDef)
     #Player Sprites and creation
     ToddPng = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(50,50))
     AjPng = pygame.transform.scale(pygame.image.load("AJPNG.png"),(50,50))
-    hp = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(30,30))
+    hp = pygame.transform.scale(pygame.image.load("Cane Heart.png"),(30,30))
     if level == 1:
         Todd = Player(ToddPng,xLength=50,yLength=50,xPos=200,yPos=500,bulletSprite=bulletColorPlayer)
         if(Multiplayer):
@@ -476,7 +467,12 @@ def mainGameLoop():
             
         if(enemies>0):
             if(topClear):
-                addEnemy(level,ChickDef,ChickFast,ChickShoot,ChickLarge,SaladDef,SaladFast,SaladShoot,SaladLarge,PopDef,PopFast,PopShoot,PopLarge,bulletColorEnemy)
+                if(level ==1):
+                    addEnemy(ChickDef,ChickFast,ChickShoot,ChickLarge,bulletColorEnemy)
+                elif(level ==2):
+                    addEnemy(SaladDef,SaladFast,SaladShoot,SaladLarge,bulletColorEnemy)
+                elif(level ==3):
+                    addEnemy(PopDef,PopFast,PopShoot,PopLarge,bulletColorEnemy)
                 enemies-=1
                 
         for event in pygame.event.get():
