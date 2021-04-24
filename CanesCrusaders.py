@@ -224,34 +224,26 @@ def playerMove(player):
     if player.direction["right"]==True:
         player.moveRight()
 
-def levelCreator(back,level,border,ChickDef,SaladDef,PopDef):
+def levelCreator(back,level,border,DefEnemy):
     if level == 1:
         Entity(back,xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
         Entity(border,yPos=0,xLength=WIDTH,yLength=TOPBORDER)
         Entity(border,yPos=BOTTOMBORDER,yLength=HEIGHT-BOTTOMBORDER,xLength=WIDTH)
     else:
         entityDisplayList[0].image = back
-    if(level==1):
-        for i in range(1,13):
-            Enemy(ChickDef, xPos=(60*i))
-    if(level==2):
-        for i in range(1,13):
-            Enemy(SaladDef, xPos=(60*i))
-    if(level==3):
-        for i in range(1,13):
-            Enemy(PopDef, xPos=(60*i))
+    for i in range(0,13):
+        Enemy(DefEnemy, xPos=(60*i))
 
 def addEnemy(Def,Fast,Shooter,Large,bulletColorEnemy):
     chance = randint(0,20)
     if(chance in [16,17]):
         speedEnemy(Fast,xPos=0)
         Enemy(Def, xPos=0)
-    elif(chance in [18,19]):
-        shootEnemy(Shooter, xPos=0,bulletSprite=bulletColorEnemy)
-        Enemy(Def, xPos=0)
-    elif(chance in [20]):
-        tankEnemy(Large,xPos=randint(0,700))
-        Enemy(Def,xPos=0)
+#    elif(chance in [19]):
+ #       shootEnemy(Shooter, xPos=0,bulletSprite=bulletColorEnemy)
+#    elif(chance in [20]):
+#        tankEnemy(Large,xPos=randint(0,700))
+#        Enemy(Def,xPos=0)
     else:
         Enemy(Def, xPos=0)
     
@@ -409,10 +401,12 @@ def mainGameLoop():
     ChickFast = pygame.transform.scale(pygame.image.load("Chick1.png"),(50,50))
     ChickShoot = pygame.transform.scale(pygame.image.load("Chick1.png"),(50,50))
     ChickLarge = pygame.transform.scale(pygame.image.load("Chick1.png"),(100,100))
+
     SaladDef = pygame.transform.scale(pygame.image.load("SaladEnemy.png"),(50,50))
-    SaladFast = pygame.transform.scale(pygame.image.load("SaladEnemy.png"),(50,50))
-    SaladShoot = pygame.transform.scale(pygame.image.load("SaladEnemy.png"),(50,50))
-    SaladLarge = pygame.transform.scale(pygame.image.load("SaladEnemy.png"),(100,100))
+    SaladFast = pygame.transform.scale(pygame.image.load("SaladFast.png"),(50,50))
+    SaladShoot = pygame.transform.scale(pygame.image.load("SaladShoot.png"),(50,50))
+    SaladLarge = pygame.transform.scale(pygame.image.load("SaladLarge.png"),(100,100))
+
     PopDef = pygame.transform.scale(pygame.image.load("PopEnemy.png"),(50,50))
     PopFast = pygame.transform.scale(pygame.image.load("PopEnemy.png"),(50,50))
     PopShoot = pygame.transform.scale(pygame.image.load("PopEnemy.png"),(50,50))
@@ -432,9 +426,14 @@ def mainGameLoop():
     ZaxbyFast = pygame.transform.scale(pygame.image.load("ZaxbyPNG.png"),(50,50))
     ZaxbyShoot = pygame.transform.scale(pygame.image.load("ZaxbyPNG.png"),(50,50))
     ZaxbyLarge = pygame.transform.scale(pygame.image.load("ZaxbyPNG.png"),(100,100))
+
+    KFCDef = pygame.transform.scale(pygame.image.load("KFCEnemy.png"),(50,50))
+    KFCFast = pygame.transform.scale(pygame.image.load("KFCEnemy.png"),(50,50))
+    KFCShoot = pygame.transform.scale(pygame.image.load("KFCEnemy.png"),(50,50))
+    KFCLarge = pygame.transform.scale(pygame.image.load("KFCEnemy.png"),(100,100))
     #Level Creation
     global level
-    levelCreator(CanesBack,level,Border,ChickDef,SaladDef,PopDef)
+    levelCreator(CanesBack,level,Border,ZaxbyDef)
     #Player Sprites and creation
     ToddPng = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(50,50))
     AjPng = pygame.transform.scale(pygame.image.load("AJPNG.png"),(50,50))
@@ -454,7 +453,6 @@ def mainGameLoop():
     for i in range(len(entityDisplayList)):
         gameDisplay.blit(entityDisplayList[i].image,(entityDisplayList[i].xPos,entityDisplayList[i].yPos))
     while not(gameEnd):
-        print (points)
         for enemy in enemyList:
             
             if(enemy.yPos<=TOPBORDER+enemy.yLength and enemy.yPos>= TOPBORDER and enemy.xPos<=enemy.xLength+10 and enemy.xPos>=0 ):
@@ -468,11 +466,19 @@ def mainGameLoop():
         if(enemies>0):
             if(topClear):
                 if(level ==1):
-                    addEnemy(ChickDef,ChickFast,ChickShoot,ChickLarge,bulletColorEnemy)
+                    addEnemy(ZaxbyDef,ZaxbyFast,ZaxbyShoot,ZaxbyLarge,bulletColorEnemy)
                 elif(level ==2):
                     addEnemy(SaladDef,SaladFast,SaladShoot,SaladLarge,bulletColorEnemy)
                 elif(level ==3):
                     addEnemy(PopDef,PopFast,PopShoot,PopLarge,bulletColorEnemy)
+                elif(level ==4):
+                    addEnemy(BBWDef,BBWFast,BBWShoot,BBWLarge,bulletColorEnemy)
+                elif(level ==5):
+                    addEnemy(ChurchDef,ChurchFast,ChurchShoot,ChurchLarge,bulletColorEnemy)
+                elif(level ==6):
+                    addEnemy(KFCDef,KFCFast,KFCShoot,KFCLarge,bulletColorEnemy)
+                elif(level ==7):
+                    addEnemy(ChickDef,ChickFast,ChickShoot,ChickLarge,bulletColorEnemy)
                 enemies-=1
                 
         for event in pygame.event.get():
@@ -558,7 +564,18 @@ def mainGameLoop():
             difficulty += 1
             enemies = difficulty * 13
             print(level)
-            levelCreator(CanesBack, level, Border, ChickDef, SaladDef, PopDef)
+            if(level==2):
+                levelCreator(CanesBack,level,Border,SaladDef)
+            if(level==3):
+                levelCreator(CanesBack,level,Border,PopDef)
+            if(level==4):
+                levelCreator(CanesBack,level,Border,BBWDef)
+            if(level==5):
+                levelCreator(CanesBack,level,Border,ChurchDef)
+            if(level==6):
+                levelCreator(CanesBack,level,Border,KFCDef)
+            if(level==7):
+                levelCreator(CanesBack,level,Border,ChickDef)
             
             
         for entity in entityDisplayList:
