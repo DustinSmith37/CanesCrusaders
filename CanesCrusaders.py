@@ -61,7 +61,7 @@ class Entity():
         
 #player class
 class Player(Entity):
-    def __init__(self,image,bulletSprite,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=50,yLength=50,health=3,healthLocation=5):
+    def __init__(self,image,bulletSprite,xPos=0,yPos=TOPBORDER,xMove=7,yMove=5,xLength=50,yLength=50,health=3,healthLocation=5):
         Entity.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength)
         self.bulletSprite=bulletSprite
         self.health = health
@@ -106,7 +106,7 @@ class Player(Entity):
 
 #enemy class
 class Enemy(Entity):
-    def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=50,xLength=50,yLength=50,health=1,direction="right"):
+    def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=50,xLength=50,yLength=50,health=2,direction="right"):
         Entity.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength)
         enemyList.append(self)
         self.health = health
@@ -235,15 +235,15 @@ def levelCreator(back,level,border,DefEnemy):
         Enemy(DefEnemy, xPos=(60*i))
 
 def addEnemy(Def,Fast,Shooter,Large,bulletColorEnemy):
-    chance = randint(0,20)
-    if(chance in [16,17]):
+    chance = randint(0,30)
+    if(chance in [14,15,16,17]):
         speedEnemy(Fast,xPos=0)
         Enemy(Def, xPos=0)
-#    elif(chance in [19]):
- #       shootEnemy(Shooter, xPos=0,bulletSprite=bulletColorEnemy)
-#    elif(chance in [20]):
-#        tankEnemy(Large,xPos=randint(0,700))
-#        Enemy(Def,xPos=0)
+    elif(chance in [19,21,22]):
+        shootEnemy(Shooter, xPos=0,bulletSprite=bulletColorEnemy)
+    elif(chance in [20]):
+        tankEnemy(Large,xPos=randint(0,700))
+        Enemy(Def,xPos=0)
     else:
         Enemy(Def, xPos=0)
     
@@ -398,9 +398,9 @@ def mainGameLoop():
     
     #Enemy Sprites
     ChickDef = pygame.transform.scale(pygame.image.load("Chick1.png"),(50,50))
-    ChickFast = pygame.transform.scale(pygame.image.load("Chick1.png"),(50,50))
-    ChickShoot = pygame.transform.scale(pygame.image.load("Chick1.png"),(50,50))
-    ChickLarge = pygame.transform.scale(pygame.image.load("Chick1.png"),(100,100))
+    ChickFast = pygame.transform.scale(pygame.image.load("ChickFast.png"),(50,50))
+    ChickShoot = pygame.transform.scale(pygame.image.load("ChickShoot.png"),(50,50))
+    ChickLarge = pygame.transform.scale(pygame.image.load("ChickLarge.png"),(100,100))
 
     SaladDef = pygame.transform.scale(pygame.image.load("SaladEnemy.png"),(50,50))
     SaladFast = pygame.transform.scale(pygame.image.load("SaladFast.png"),(50,50))
@@ -408,29 +408,29 @@ def mainGameLoop():
     SaladLarge = pygame.transform.scale(pygame.image.load("SaladLarge.png"),(100,100))
 
     PopDef = pygame.transform.scale(pygame.image.load("PopEnemy.png"),(50,50))
-    PopFast = pygame.transform.scale(pygame.image.load("PopEnemy.png"),(50,50))
-    PopShoot = pygame.transform.scale(pygame.image.load("PopEnemy.png"),(50,50))
-    PopLarge = pygame.transform.scale(pygame.image.load("PopEnemy.png"),(100,100))
+    PopFast = pygame.transform.scale(pygame.image.load("PopFast.png"),(50,50))
+    PopShoot = pygame.transform.scale(pygame.image.load("PopShoot.png"),(50,50))
+    PopLarge = pygame.transform.scale(pygame.image.load("PopLarge.png"),(100,100))
 
     BBWDef = pygame.transform.scale(pygame.image.load("BDubsPNG.png"),(50,50))
-    BBWFast = pygame.transform.scale(pygame.image.load("BDubsPNG.png"),(50,50))
-    BBWShoot = pygame.transform.scale(pygame.image.load("BDubsPNG.png"),(50,50))
-    BBWLarge = pygame.transform.scale(pygame.image.load("BDubsPNG.png"),(100,100))
+    BBWFast = pygame.transform.scale(pygame.image.load("BDubsFast.png"),(50,50))
+    BBWShoot = pygame.transform.scale(pygame.image.load("BDubsShoot.png"),(50,50))
+    BBWLarge = pygame.transform.scale(pygame.image.load("BDubsLarge.png"),(100,100))
 
     ChurchDef = pygame.transform.scale(pygame.image.load("ChurchChick.png"),(50,50))
-    ChurchFast = pygame.transform.scale(pygame.image.load("ChurchChick.png"),(50,50))
-    ChurchShoot = pygame.transform.scale(pygame.image.load("ChurchChick.png"),(50,50))
-    ChurchLarge = pygame.transform.scale(pygame.image.load("ChurchChick.png"),(100,100))
+    ChurchFast = pygame.transform.scale(pygame.image.load("ChurchFast.png"),(50,50))
+    ChurchShoot = pygame.transform.scale(pygame.image.load("ChurchShoot.png"),(50,50))
+    ChurchLarge = pygame.transform.scale(pygame.image.load("ChurchLarge.png"),(100,100))
 
     ZaxbyDef = pygame.transform.scale(pygame.image.load("ZaxbyPNG.png"),(50,50))
-    ZaxbyFast = pygame.transform.scale(pygame.image.load("ZaxbyPNG.png"),(50,50))
-    ZaxbyShoot = pygame.transform.scale(pygame.image.load("ZaxbyPNG.png"),(50,50))
-    ZaxbyLarge = pygame.transform.scale(pygame.image.load("ZaxbyPNG.png"),(100,100))
+    ZaxbyFast = pygame.transform.scale(pygame.image.load("ZaxbyFast.png"),(50,50))
+    ZaxbyShoot = pygame.transform.scale(pygame.image.load("ZaxbyShoot.png"),(50,50))
+    ZaxbyLarge = pygame.transform.scale(pygame.image.load("ZaxbyLarge.png"),(100,100))
 
     KFCDef = pygame.transform.scale(pygame.image.load("KFCEnemy.png"),(50,50))
-    KFCFast = pygame.transform.scale(pygame.image.load("KFCEnemy.png"),(50,50))
-    KFCShoot = pygame.transform.scale(pygame.image.load("KFCEnemy.png"),(50,50))
-    KFCLarge = pygame.transform.scale(pygame.image.load("KFCEnemy.png"),(100,100))
+    KFCFast = pygame.transform.scale(pygame.image.load("KFCFast.png"),(50,50))
+    KFCShoot = pygame.transform.scale(pygame.image.load("KFCShoot.png"),(50,50))
+    KFCLarge = pygame.transform.scale(pygame.image.load("KFCLarge.png"),(100,100))
     #Level Creation
     global level
     levelCreator(CanesBack,level,Border,ZaxbyDef)
