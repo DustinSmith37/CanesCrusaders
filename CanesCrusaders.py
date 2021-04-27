@@ -42,19 +42,19 @@ class Entity():
     #movement controls. This allows any entity to move its set speed that direction
     def moveLeft(self):
         self.xPos-=self.xMove
-        if self.xPos<0:
+        if (self.xPos<0):
             self.xPos=0
     def moveRight(self):
         self.xPos+=self.xMove
-        if self.xPos>WIDTH-self.xLength:
+        if (self.xPos>WIDTH-self.xLength):
             self.xPos=WIDTH-self.xLength
     def moveUp(self):
         self.yPos-=self.yMove
-        if self.yPos<TOPBORDER:
+        if (self.yPos<TOPBORDER):
             self.yPos=TOPBORDER
     def moveDown(self):
         self.yPos+=self.yMove
-        if self.yPos>BOTTOMBORDER-self.yLength:
+        if (self.yPos>BOTTOMBORDER-self.yLength):
             self.yPos=BOTTOMBORDER-self.yLength
     def remove(self):
         entityDisplayList.remove(self)
@@ -85,7 +85,7 @@ class Player(Entity):
             entityDisplayList.remove(self)
             self.alive = False
     def heal(self):
-        if self.health==0:
+        if (self.health==0):
             self.alive = True
         self.health+=1
 
@@ -97,8 +97,8 @@ class Player(Entity):
     
     def hitDetect(self):
         for enemy in enemyList:
-            if enemy.xPos+enemy.xLength>self.xPos and enemy.xPos<self.xPos:
-                if enemy.yPos+enemy.yLength>self.yPos and enemy.yPos<self.yPos:
+            if (enemy.xPos+enemy.xLength>self.xPos and enemy.xPos<self.xPos):
+                if (enemy.yPos+enemy.yLength>self.yPos and enemy.yPos<self.yPos):
                     self.damage()
                     enemy.remove()
                     break
@@ -114,14 +114,14 @@ class Enemy(Entity):
         self.health = health
         self.direction = direction
     def autoMove(self):
-        if self.direction == "left":
+        if (self.direction == "left"):
             self.moveLeft()
-        elif self.direction == "right":
+        elif (self.direction == "right"):
             self.moveRight()
-        if self.xPos == 0:
+        if (self.xPos == 0):
             self.direction = "right"
             self.moveDown()
-        elif self.xPos == WIDTH-self.xLength:
+        elif (self.xPos == WIDTH-self.xLength):
             self.direction = "left"
             self.moveDown() 
         if(self.yPos+self.yLength>=BOTTOMBORDER):
@@ -130,7 +130,7 @@ class Enemy(Entity):
                 player.damage()
     def damage(self):
         self.health -=1
-        if self.health <= 0:
+        if (self.health <= 0):
             self.remove()
 
     def remove(self):
@@ -149,13 +149,13 @@ class shootEnemy(Enemy):
         self.bulletSprite=bulletSprite
 
     def autoMove(self):
-        if self.direction == "left":
+        if (self.direction == "left"):
             self.moveLeft()
-        elif self.direction == "right":
+        elif (self.direction == "right"):
             self.moveRight()
-        if self.xPos == 0:
+        if (self.xPos == 0):
             self.direction = "right"
-        elif self.xPos == WIDTH-self.xLength:
+        elif (self.xPos == WIDTH-self.xLength):
             self.direction = "left"
     def fire(self):
         shot = randint(0,30)
@@ -184,14 +184,14 @@ class Bullet(Entity):
         self.yPos-=self.yMove
     def hitDetect(self):
         for enemy in enemyList:
-            if enemy.xPos+enemy.xLength>self.xPos and enemy.xPos<self.xPos:
-                if enemy.yPos+enemy.yLength>self.yPos and enemy.yPos<self.yPos:
+            if (enemy.xPos+enemy.xLength>self.xPos and enemy.xPos<self.xPos):
+                if (enemy.yPos+enemy.yLength>self.yPos and enemy.yPos<self.yPos):
                     enemy.damage()
                     self.remove()
                     global points
                     points +=10
                     break
-        if self.yPos<=TOPBORDER:
+        if (self.yPos<=TOPBORDER):
             self.remove()   
     def remove(self):
         bulletList.remove(self)
@@ -205,29 +205,29 @@ class enemyBullet(Entity):
         self.yPos-=self.yMove
     def hitDetect(self):
         for player in playerList:
-            if player.xPos+player.xLength>self.xPos and player.xPos<self.xPos:
-                if player.yPos+player.yLength>self.yPos and player.yPos<self.yPos:
+            if (player.xPos+player.xLength>self.xPos and player.xPos<self.xPos):
+                if (player.yPos+player.yLength>self.yPos and player.yPos<self.yPos):
                     player.damage()
                     self.remove()
                     break
-        if self.yPos+self.yLength>=BOTTOMBORDER:
+        if (self.yPos+self.yLength>=BOTTOMBORDER):
             self.remove()   
     def remove(self):
         bulletList.remove(self)
         entityDisplayList.remove(self)
     
 def playerMove(player):
-    if player.direction["up"]==True:
+    if (player.direction["up"]==True):
         player.moveUp()
-    if player.direction["left"]==True:
+    if (player.direction["left"]==True):
         player.moveLeft()
-    if player.direction["down"]==True:
+    if (player.direction["down"]==True):
         player.moveDown()
-    if player.direction["right"]==True:
+    if (player.direction["right"]==True):
         player.moveRight()
 
 def levelCreator(back,level,border,DefEnemy):
-    if level == 1:
+    if (level == 1):
         Entity(back,xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
         Entity(border,yPos=0,xLength=WIDTH,yLength=TOPBORDER)
         Entity(border,yPos=BOTTOMBORDER,yLength=HEIGHT-BOTTOMBORDER,xLength=WIDTH)
@@ -260,27 +260,27 @@ def titleScreen():
     stage = "start"
     while not gameStart:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if (event.type == pygame.QUIT):
                 pygame.quit()
                 gameStart = True
                 os._exit(1)
             elif event.type == pygame.KEYDOWN:
-                if (event.key == pygame.K_RETURN or event.key == pygame.K_SPACE) and (stage == "guide") :
-                    if Multiplayer:
+                if ((event.key == pygame.K_RETURN or event.key == pygame.K_SPACE) and (stage == "guide")):
+                    if (Multiplayer):
                         stage = "inform2"
                     else:
                         stage = "inform1"
-                if (event.key == pygame.K_e or event.key == pygame.K_BACKSLASH)and(stage == "inform1" or stage == "inform2"):
+                if ((event.key == pygame.K_e or event.key == pygame.K_BACKSLASH)and(stage == "inform1" or stage == "inform2")):
                     gameStart = True
-                if event.key == pygame.K_1:
+                if (event.key == pygame.K_1):
                     stage = "guide"
                     Multiplayer = False
-                elif event.key == pygame.K_2:
+                elif (event.key == pygame.K_2):
                     stage = "guide"
                     Multiplayer = True
                 #elif event.key
         gameDisplay.blit(background,(0,0))
-        if stage == "start":
+        if (stage == "start"):
             line1 = bigText.render("CANES CRUSADERS",True,(255,255,255))
             gameDisplay.blit(line1,(100,150))
             line2 = medText.render("THE GREAT CHICKEN WARS",True,(255,0,0))
@@ -289,7 +289,7 @@ def titleScreen():
             line2 = medText.render("SELECT NUMBER OF PLAYERS TO CONTINUE",True,(255,0,0))
             gameDisplay.blit(line2,(15,260))
 
-        if stage == "inform2":
+        if (stage == "inform2"):
             line1 = bigText.render("MEET YOUR HEROES",True,(255,255,255))
             gameDisplay.blit(line1,(90,50))
             line2 = medText.render("TODD GRAVES",True,(255,255,255))
@@ -309,7 +309,7 @@ def titleScreen():
             gameDisplay.blit(toddTitle,(100,400))
             gameDisplay.blit(ajTitle,(500,400))
         
-        if stage == "inform1":
+        if (stage == "inform1"):
             line1 = bigText.render("MEET YOUR HERO",True,(255,255,255))
             gameDisplay.blit(line1,(120,50))
             line2 = medText.render("TODD GRAVES",True,(255,255,255))
@@ -322,7 +322,7 @@ def titleScreen():
             gameDisplay.blit(line7,(110,350))
             gameDisplay.blit(toddTitle,(100,400))
         
-        if stage == "guide":
+        if (stage == "guide"):
             line1 = bigText.render("HOW TO PLAY",True,(255,255,255))
             gameDisplay.blit(line1,(120,50))
             gameDisplay.blit(guide,(100,100))
@@ -335,7 +335,7 @@ def shop():
     ToddNum = 0
     AjNum = 0
     shopping = True
-    while shopping:
+    while (shopping):
         shopFront = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,BOTTOMBORDER-TOPBORDER))
         gameDisplay.blit(shopFront,(0,TOPBORDER))
         Border = pygame.transform.scale(pygame.image.load("black.png"),(WIDTH,50))
@@ -346,37 +346,37 @@ def shop():
         gameDisplay.blit(pointDisplay, (590,10))
         gameDisplay.blit(levelDisplay, (10,10))
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if (event.type == pygame.QUIT):
                 pygame.quit()
                 shopping = False
                 os._exit(1)
-            if event.type ==pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+            if (event.type ==pygame.KEYDOWN):
+                if (event.key == pygame.K_ESCAPE):
                     pygame.quit()
                     shopping = False
                     os._exit(1)
-                if event.key == pygame.K_c:
+                if (event.key == pygame.K_c):
                     shopping  = False
                 #Todd's selection
-                if event.key == pygame.K_a:
-                    if ToddNum >0:
+                if (event.key == pygame.K_a):
+                    if (ToddNum >0):
                         ToddNum -= 1
-                if event.key == pygame.K_d:
-                    if ToddNum<((WIDTH//100)-1):
+                if (event.key == pygame.K_d):
+                    if (ToddNum<((WIDTH//100)-1)):
                         ToddNum += 1
                 #AJ's selection
                 if(Multiplayer):
-                    if event.key == pygame.K_LEFT:
-                        if AjNum >0:
+                    if (event.key == pygame.K_LEFT):
+                        if (AjNum >0):
                             AjNum -= 1
-                    if event.key == pygame.K_RIGHT:
-                        if AjNum<((WIDTH//100)-1):
+                    if (event.key == pygame.K_RIGHT):
+                        if (AjNum<((WIDTH//100)-1)):
                             AjNum += 1
                 #Todd and AJ's firing (space and enter respectively)
-                if event.key == pygame.K_SPACE:
+                if (event.key == pygame.K_SPACE):
                     pass
                 if(Multiplayer):
-                    if event.key == pygame.K_RETURN:
+                    if (event.key == pygame.K_RETURN):
                         pass
         fps.tick(30)
         gameDisplay.blit(ToddShop,(ToddNum*100,250))
@@ -484,35 +484,35 @@ def mainGameLoop():
                 enemies-=1
                 
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if (event.type == pygame.QUIT):
                 pygame.quit()
                 gameEnd = True
                 os._exit(1)
-            if event.type ==pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+            if (event.type ==pygame.KEYDOWN):
+                if (event.key == pygame.K_ESCAPE):
                     pygame.quit()
                     gameEnd = True
                     os._exit(1)
                 #Todd's 4 directional movement engaged
                 if(Todd.alive):
-                    if event.key == pygame.K_w:
+                    if (event.key == pygame.K_w):
                         Todd.movement("up",True)
-                    if event.key == pygame.K_a:
+                    if (event.key == pygame.K_a):
                         Todd.movement("left",True)
-                    if event.key == pygame.K_s:
+                    if (event.key == pygame.K_s):
                         Todd.movement("down",True)
-                    if event.key == pygame.K_d:
+                    if (event.key == pygame.K_d):
                         Todd.movement("right",True)
                 #AJ's 4 directional movement engaged
                 if(Multiplayer):
                     if(Aj.alive):
-                        if event.key == pygame.K_UP:
+                        if (event.key == pygame.K_UP):
                             Aj.movement("up",True)
-                        if event.key == pygame.K_LEFT:
+                        if (event.key == pygame.K_LEFT):
                             Aj.movement("left",True)
-                        if event.key == pygame.K_DOWN:
+                        if (event.key == pygame.K_DOWN):
                             Aj.movement("down",True)
-                        if event.key == pygame.K_RIGHT:
+                        if (event.key == pygame.K_RIGHT):
                             Aj.movement("right",True)
                 #Todd and AJ's firing (space and enter respectively)
                 if(Todd.alive):
@@ -520,9 +520,9 @@ def mainGameLoop():
                         Todd.shoot()
                 if(Multiplayer):
                     if(Aj.alive):
-                        if event.key == pygame.K_RETURN:
+                        if (event.key == pygame.K_RETURN):
                             Aj.shoot()
-            if event.type==pygame.KEYUP:
+            if (event.type==pygame.KEYUP):
                 #Todd's 4 directional movement disengaged
                 if event.key == pygame.K_w:
                     Todd.movement("up",False)
@@ -534,7 +534,7 @@ def mainGameLoop():
                     Todd.movement("right",False)
                 #AJ's 4 directional movement disengaged
                 if(Multiplayer):
-                    if event.key == pygame.K_UP:
+                    if (event.key == pygame.K_UP):
                         Aj.movement("up",False)
                     if event.key == pygame.K_LEFT:
                         Aj.movement("left",False)
