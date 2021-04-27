@@ -1,5 +1,6 @@
 #import the needed modules, pygame is obvious, time for tick speed,
 #and os for leaving the game without causing errors
+#THIS IS A TEST COMMENT TO MAKE SURE GITHUB NO GAY
 import pygame, time, os
 from random import randint
 #initialize pygame, its font's and it's music player
