@@ -72,6 +72,15 @@ class Player(Entity):
         self.healthLocation = healthLocation
         playerList.append(self)
         self.alive = True
+        self.upgrades = {"doubleShoot":False,"doubleDamage":False,"fastMove":False}
+        self.special = "shotgun"
+        #list of specials
+        #shotgun: 3/6 shots based on upgrade
+        #laser: continous beam, gets wider with double shot
+        #minigun: lots of shots
+        #cannon: aoe explosion
+        #superbreaker: fires all the way to the top dealing damage as it goes
+        #shield: I frames on demand
     def shoot(self):
         Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/2,yPos=self.yPos)
     def damage(self):
