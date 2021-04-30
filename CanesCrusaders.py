@@ -73,8 +73,9 @@ class Player(Entity):
         self.healthLocation = healthLocation
         playerList.append(self)
         self.alive = True
-        self.upgrades = {"doubleShoot":False,"doubleDamage":False,"fastMove":False}
-        self.special = "shotgun"
+        self.upgrades = {"doubleShoot":False,"doubleDamage":False,"doubleDamage2":False,"doubleDamage3":False,"fastMove":False}
+        self.specialActive = "shotgun"
+        self.specialBought = {"shotgun":True,"laser":False,"minigun":False,"cannon":False,"superbreaker":False,"shield":False}
         #list of specials
         #shotgun: 3/6 shots based on upgrade
         #laser: continous beam, gets wider with double shot
@@ -258,7 +259,54 @@ def addEnemy(Def,Fast,Shooter,Large,bulletColorEnemy):
         Enemy(Def,xPos=0)
     else:
         Enemy(Def, xPos=0)
-    
+
+def purchase(buyer,buyerX,buyerY):
+    global points
+    buyGrid=[{"doubleShoot":100,"doubleDamage":100,"doubleDamage2":100,"doubleDamage3":100,"fastMove":100,"heal":100},{}]
+    upgrade = None
+    special = None
+    index = 0
+    status = "What would you like to buy?"
+    if buyerY == 0:
+        for key in buyGrid[0].keys():
+            if index == buyerX:
+                upgrade = key
+                break
+            else:
+                index+=1
+    else:
+        for key in buyGrid[1].keys():
+            if index == buyerX:
+                special = key
+                break
+            else:
+                index+=1
+    if upgrade != None:
+        if points >= buyGrid[0][upgrade]:
+            if upgrade == "heal":
+                buyer.heal()
+                points -= buyGrid[0]["heal"]
+                status = "You have healed! Well done!"
+            else:
+                points -= buyGrid[0][upgrade]
+                buyer.upgrades[upgrade]=True
+                status = "You have bought an upgrade! Well done!"
+        else:
+            status = "You a broke ass bitch!"
+    elif special != None:
+        if points >= buyGrid[1][special]:
+            if buyer.specialBought[special] ==False:
+                points -= buyGrid[1][special]
+                buyer.specialBought[special]=True
+                buyer.specialActive = special
+                status = "You have bought a special move! Well done!"
+            if buyer.specialBought[special]==True:
+                buyer.specialActive = special
+                status = "You have swapped your active special. Well done!"
+        else:
+            status = "You a broke ass bitch!"
+    return status
+
 def titleScreen():
     #assets for title screen
     global Multiplayer
@@ -340,11 +388,15 @@ def titleScreen():
         pygame.display.update()
         fps.tick(15)
 def shop():
-    ToddShop = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(100,100))
-    AjShop = pygame.transform.scale(pygame.image.load("AJPNG.png"),(100,100))
-    ToddNum = 0
-    AjNum = 0
+    ToddShop = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(50,50))
+    AjShop = pygame.transform.scale(pygame.image.load("AJPNG.png"),(50,50))
+    hp = pygame.transform.scale(pygame.image.load("Cane Heart.png"),(30,30))
+    ToddPos = {"xPos":0,"yPos":0}
+    AjPos = {"xPos":0,"yPos":0}
     shopping = True
+    global points
+    points += 1000
+    status = "What would you like to buy?"
     while (shopping):
         shopFront = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,BOTTOMBORDER-TOPBORDER))
         gameDisplay.blit(shopFront,(0,TOPBORDER))
@@ -355,6 +407,11 @@ def shop():
         levelDisplay = medText.render("Level: Shop",True,(255,255,255))
         gameDisplay.blit(pointDisplay, (590,10))
         gameDisplay.blit(levelDisplay, (10,10))
+        ownedText = tinyText.render("Owned",True,(255,255,255))
+        activeText = tinyText.render("Active",True,(255,255,255))
+        gameDisplay.blit(ownedText,(0,200))
+        gameDisplay.blit(ownedText,(0,400))
+        gameDisplay.blit(activeText,(0,450))
         for event in pygame.event.get():
             if (event.type == pygame.QUIT):
                 pygame.quit()
@@ -365,33 +422,51 @@ def shop():
                     pygame.quit()
                     shopping = False
                     os._exit(1)
-                if (event.key == pygame.K_c):
+                if (event.key == pygame.K_1 or event.key == pygame.K_2):
                     shopping  = False
                 #Todd's selection
                 if (event.key == pygame.K_a):
-                    if (ToddNum >0):
-                        ToddNum -= 1
+                    if (ToddPos["xPos"] >0):
+                        ToddPos["xPos"] -= 1
                 if (event.key == pygame.K_d):
-                    if (ToddNum<((WIDTH//100)-1)):
-                        ToddNum += 1
+                    if (ToddPos["xPos"]<5):
+                        ToddPos["xPos"] += 1
+                if (event.key == pygame.K_w):
+                    if (ToddPos["yPos"] >0):
+                        ToddPos["yPos"] -= 1
+                if (event.key == pygame.K_s):
+                    if (ToddPos["yPos"]<1):
+                        ToddPos["yPos"] += 1
+                    
                 #AJ's selection
                 if(Multiplayer):
                     if (event.key == pygame.K_LEFT):
-                        if (AjNum >0):
-                            AjNum -= 1
+                        if (AjPos["xPos"] >0):
+                            AjPos["xPos"] -= 1
                     if (event.key == pygame.K_RIGHT):
-                        if (AjNum<((WIDTH//100)-1)):
-                            AjNum += 1
+                        if (AjPos["xPos"]<5):
+                            AjPos["xPos"] += 1
+                    if (event.key == pygame.K_UP):
+                        if (AjPos["yPos"] >0):
+                            AjPos["yPos"] -= 1
+                    if (event.key == pygame.K_DOWN):
+                        if (AjPos["yPos"]<1):
+                            AjPos["yPos"] += 1
                 #Todd and AJ's firing (space and enter respectively)
                 if (event.key == pygame.K_SPACE):
-                    pass
+                    status = purchase(playerList[0],ToddPos["xPos"],ToddPos["yPos"])
                 if(Multiplayer):
                     if (event.key == pygame.K_RETURN):
-                        pass
+                        status = purchase(playerList[1],AjPos["xPos"],AjPos["yPos"])
         fps.tick(30)
-        gameDisplay.blit(ToddShop,(ToddNum*100,250))
+        gameDisplay.blit(ToddShop,(ToddPos["xPos"]*125+75,ToddPos["yPos"]*200+300))
         if Multiplayer:
-            gameDisplay.blit(AjShop,(AjNum*100,450))
+            gameDisplay.blit(AjShop,(AjPos["xPos"]*125+130,AjPos["yPos"]*200+300))
+        RC3Message = tinyText.render("RC3: "+str(status),True,(255,255,255))
+        gameDisplay.blit(RC3Message,(400,100))
+        for player in playerList:
+            for i in range(player.health):
+                gameDisplay.blit(hp,(player.healthLocation+i*50,BOTTOMBORDER+10))
         pygame.display.flip()
 def lose():
     pass
@@ -450,14 +525,9 @@ def mainGameLoop():
     ToddPng = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(50,50))
     AjPng = pygame.transform.scale(pygame.image.load("AJPNG.png"),(50,50))
     hp = pygame.transform.scale(pygame.image.load("Cane Heart.png"),(30,30))
-    if level == 1:
-        Todd = Player(ToddPng,xLength=50,yLength=50,xPos=200,yPos=500,bulletSprite=bulletColorPlayer)
-        if(Multiplayer):
-            Aj = Player(AjPng,xLength=50,yLength=50,xPos=600,yPos=500, healthLocation=500,bulletSprite=bulletColorPlayer)
-    else:
-        Todd = playerList[0]
-        if Multiplayer:
-            Aj = playerList[1]
+    Todd = Player(ToddPng,xLength=50,yLength=50,xPos=200,yPos=500,bulletSprite=bulletColorPlayer)
+    if(Multiplayer):
+        Aj = Player(AjPng,xLength=50,yLength=50,xPos=600,yPos=500, healthLocation=500,bulletSprite=bulletColorPlayer)
     
 
 
@@ -575,7 +645,9 @@ def mainGameLoop():
             level += 1
             difficulty += 1
             enemies = difficulty * 13
-            print(level)
+            for player in playerList:
+                for direct in player.direction.keys():
+                    player.direction[direct]=False
             if(level==2):
                 levelCreator(CanesBack,level,Border,SaladDef)
             if(level==3):
@@ -600,7 +672,9 @@ def mainGameLoop():
                 gameDisplay.blit(hp,(player.healthLocation+i*50,BOTTOMBORDER+10))
         if collectiveHealth <= 0:
             break
-        
+        if instakill:
+            for enemy in enemyList:
+                enemy.remove()
         pointDisplay = medText.render("Points: "+str(points),True,(255,255,255))
         levelDisplay = medText.render("Level: " +str(level), True,(255,255,255))
         gameDisplay.blit(pointDisplay, (590,10))
@@ -616,6 +690,8 @@ global level
 level = 1
 global points 
 points = 0
+global instakill
+instakill = True
 #TEXT ASSETS, these will never change so are global usage (because screw passing these into every single game window)
 global bigText
 bigText = pygame.font.SysFont('Arial MS', 90)
