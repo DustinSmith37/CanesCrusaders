@@ -13,6 +13,7 @@ fps = pygame.time.Clock()
 #display the pygame window, set it to be 800 by 600 and be fullscreen (when not debugging)
 WIDTH = 800
 HEIGHT = 600
+WIDTH = 1600
 TOPBORDER = 50
 BOTTOMBORDER = HEIGHT-50
 gameDisplay = pygame.display.set_mode((WIDTH,HEIGHT),)#pygame.FULLSCREEN)
