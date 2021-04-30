@@ -13,7 +13,6 @@ fps = pygame.time.Clock()
 #display the pygame window, set it to be 800 by 600 and be fullscreen (when not debugging)
 WIDTH = 800
 HEIGHT = 600
-WIDTH = 1600
 TOPBORDER = 50
 BOTTOMBORDER = HEIGHT-50
 gameDisplay = pygame.display.set_mode((WIDTH,HEIGHT),)#pygame.FULLSCREEN)
@@ -262,7 +261,7 @@ def addEnemy(Def,Fast,Shooter,Large,bulletColorEnemy):
 
 def purchase(buyer,buyerX,buyerY):
     global points
-    buyGrid=[{"doubleShoot":100,"doubleDamage":100,"doubleDamage2":100,"doubleDamage3":100,"fastMove":100,"heal":100},{}]
+    buyGrid=[{"doubleShoot":250,"doubleDamage":500,"doubleDamage2":1000,"doubleDamage3":2000,"fastMove":500,"heal":100},{"shotgun":0, "laser":250}]
     upgrade = None
     special = None
     index = 0
@@ -292,7 +291,7 @@ def purchase(buyer,buyerX,buyerY):
                 buyer.upgrades[upgrade]=True
                 status = "You have bought an upgrade! Well done!"
         else:
-            status = "You a broke ass bitch!"
+            status = "You do not have enough points!"
     elif special != None:
         if points >= buyGrid[1][special]:
             if buyer.specialBought[special] ==False:
@@ -304,7 +303,7 @@ def purchase(buyer,buyerX,buyerY):
                 buyer.specialActive = special
                 status = "You have swapped your active special. Well done!"
         else:
-            status = "You a broke ass bitch!"
+            status = "You do not have enough points!"
     return status
 
 def titleScreen():
@@ -386,7 +385,7 @@ def titleScreen():
             gameDisplay.blit(guide,(100,100))
             
         pygame.display.update()
-        fps.tick(15)
+        fps.tick(30)
 def shop():
     ToddShop = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(50,50))
     AjShop = pygame.transform.scale(pygame.image.load("AJPNG.png"),(50,50))
@@ -397,12 +396,16 @@ def shop():
     global points
     points += 1000
     status = "What would you like to buy?"
+    shopFront = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,BOTTOMBORDER-TOPBORDER))
+    CoolCane = pygame.transform.scale(pygame.image.load("CoolCanePNG.png"),(100,100))
+    TextBack = pygame.transform.scale(pygame.image.load("WhiteBorder.jpeg"),(500,100))
+    Heal = pygame.transform.scale(pygame.image.load("Cane Heart.png"),(75,75))
     while (shopping):
-        shopFront = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,BOTTOMBORDER-TOPBORDER))
         gameDisplay.blit(shopFront,(0,TOPBORDER))
         Border = pygame.transform.scale(pygame.image.load("black.png"),(WIDTH,50))
         gameDisplay.blit(Border,(0,0))
         gameDisplay.blit(Border,(0,BOTTOMBORDER))
+        gameDisplay.blit(TextBack,(300,TOPBORDER))
         pointDisplay = medText.render("Points: "+str(points),True,(255,255,255))
         levelDisplay = medText.render("Level: Shop",True,(255,255,255))
         gameDisplay.blit(pointDisplay, (590,10))
@@ -412,6 +415,8 @@ def shop():
         gameDisplay.blit(ownedText,(0,200))
         gameDisplay.blit(ownedText,(0,400))
         gameDisplay.blit(activeText,(0,450))
+        gameDisplay.blit(Heal,(710,200))
+        gameDisplay.blit(CoolCane,(200,TOPBORDER))
         for event in pygame.event.get():
             if (event.type == pygame.QUIT):
                 pygame.quit()
@@ -462,8 +467,9 @@ def shop():
         gameDisplay.blit(ToddShop,(ToddPos["xPos"]*125+75,ToddPos["yPos"]*200+300))
         if Multiplayer:
             gameDisplay.blit(AjShop,(AjPos["xPos"]*125+130,AjPos["yPos"]*200+300))
-        RC3Message = tinyText.render("RC3: "+str(status),True,(255,255,255))
-        gameDisplay.blit(RC3Message,(400,100))
+        
+        RC3Message = tinyText.render("RC3: "+str(status),True,(0,0,0))
+        gameDisplay.blit(RC3Message,(320,100))
         for player in playerList:
             for i in range(player.health):
                 gameDisplay.blit(hp,(player.healthLocation+i*50,BOTTOMBORDER+10))
@@ -700,6 +706,6 @@ medText = pygame.font.SysFont('Arial MS', 50)
 global tinyText
 tinyText = pygame.font.SysFont('Arial MS', 25)
 
-titleScreen()
+#titleScreen()
 mainGameLoop()
 lose()
