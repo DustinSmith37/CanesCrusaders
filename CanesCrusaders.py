@@ -697,7 +697,7 @@ level = 1
 global points 
 points = 0
 global instakill
-instakill = True
+instakill = False
 #TEXT ASSETS, these will never change so are global usage (because screw passing these into every single game window)
 global bigText
 bigText = pygame.font.SysFont('Arial MS', 90)
@@ -706,6 +706,6 @@ medText = pygame.font.SysFont('Arial MS', 50)
 global tinyText
 tinyText = pygame.font.SysFont('Arial MS', 25)
 
-#titleScreen()
+titleScreen()
 mainGameLoop()
 lose()
