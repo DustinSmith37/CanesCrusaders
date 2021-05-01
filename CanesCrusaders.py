@@ -68,6 +68,7 @@ class Player(Entity):
         self.bulletSprite=bulletSprite
         self.health = health
         self.invincibility = 0
+        self.specialCooldown = 0
         self.direction = {"up":False,"left":False,"down":False,"right":False}
         self.healthLocation = healthLocation
         playerList.append(self)
@@ -84,6 +85,16 @@ class Player(Entity):
         #shield: I frames on demand
     def shoot(self):
         Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/2,yPos=self.yPos)
+
+    def special(self):
+        if(self.specialActive=="shotgun"):
+            Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/1,yPos=self.yPos)
+            Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/1.5,yPos=self.yPos)
+            Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/3,yPos=self.yPos)
+
+        self.specialCooldown = 90
+
+
     def damage(self):
         if(self.invincibility==0 and self.alive):
             self.health-=1
@@ -101,6 +112,9 @@ class Player(Entity):
 
     def tickdown(self):
         self.invincibility -=1
+
+    def specialtickdown(self):
+        self.specialCooldown -= 1
         
     def movement(self,move,state):
         self.direction[move]=state
@@ -405,11 +419,12 @@ def shop():
     levelDisplay = medText.render("Level: Shop",True,(255,255,255))
     Border = pygame.transform.scale(pygame.image.load("black.png"),(WIDTH,50))
     DoubleDamage = pygame.transform.scale(pygame.image.load("DoubleDamage.png"),(75,75))
-    TripleDamage = pygame.transform.scale(pygame.image.load("TripleDamage.png"),(75,75))
+    DoubleBullet = pygame.transform.scale(pygame.image.load("DoubleTap.png"),(75,75))
+    DoubleSpeed = pygame.transform.scale(pygame.image.load("X2speed.png"),(75,75))
+    ShotPower = pygame.transform.scale(pygame.image.load("Shotgun.png"),(100,50))
+    LaserPower = pygame.transform.scale(pygame.image.load("Laser.png"),(100,50))
 
-
-
-    while (shopping):
+    while(shopping):
         gameDisplay.blit(shopFront,(0,TOPBORDER))
         gameDisplay.blit(Border,(0,0))
         gameDisplay.blit(Border,(0,BOTTOMBORDER))
@@ -421,8 +436,14 @@ def shop():
         gameDisplay.blit(ownedText,(0,400))
         gameDisplay.blit(activeText,(0,450))
         gameDisplay.blit(Heal,(710,200))
+        gameDisplay.blit(DoubleBullet,(90,200))
         gameDisplay.blit(DoubleDamage,(220,200))
-        gameDisplay.blit(TripleDamage,(340,200))
+        gameDisplay.blit(DoubleDamage,(340,200))
+        gameDisplay.blit(DoubleDamage,(465,200))
+        gameDisplay.blit(DoubleSpeed,(590,200))
+        gameDisplay.blit(ShotPower,(80,425))
+        gameDisplay.blit(LaserPower,(210,425))
+
 
         gameDisplay.blit(CoolCane,(200,TOPBORDER))
         for event in pygame.event.get():
@@ -608,14 +629,22 @@ def mainGameLoop():
                             Aj.movement("down",True)
                         if (event.key == pygame.K_RIGHT):
                             Aj.movement("right",True)
+                
                 #Todd and AJ's firing (space and enter respectively)
                 if(Todd.alive):
-                    if event.key == pygame.K_SPACE:
+                    if (event.key == pygame.K_SPACE):
                         Todd.shoot()
+                    if(Todd.specialCooldown == 0):
+                        if (event.key == pygame.K_e):
+                            Todd.special()
                 if(Multiplayer):
                     if(Aj.alive):
                         if (event.key == pygame.K_RETURN):
                             Aj.shoot()
+                        if(Aj.specialCooldown == 0):
+                            if(event.key == pygame.K_BACKSLASH):
+                                Aj.special()
+                
             if (event.type==pygame.KEYUP):
                 #Todd's 4 directional movement disengaged
                 if event.key == pygame.K_w:
@@ -648,6 +677,9 @@ def mainGameLoop():
         for player in playerList:
             if(player.invincibility>0):
                 player.tickdown()
+        for player in playerList:
+            if(player.specialCooldown):
+                player.specialtickdown()
         for enemy in shootList:
             shootEnemy.fire(enemy)
         for player in playerList:
@@ -705,7 +737,7 @@ level = 1
 global points 
 points = 0
 global instakill
-instakill = True
+instakill = False
 #TEXT ASSETS, these will never change so are global usage (because screw passing these into every single game window)
 global bigText
 bigText = pygame.font.SysFont('Arial MS', 90)
