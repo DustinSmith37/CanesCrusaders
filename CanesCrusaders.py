@@ -400,22 +400,30 @@ def shop():
     CoolCane = pygame.transform.scale(pygame.image.load("CoolCanePNG.png"),(100,100))
     TextBack = pygame.transform.scale(pygame.image.load("WhiteBorder.jpeg"),(500,100))
     Heal = pygame.transform.scale(pygame.image.load("Cane Heart.png"),(75,75))
+    ownedText = tinyText.render("Owned",True,(255,255,255))
+    activeText = tinyText.render("Active",True,(255,255,255))
+    levelDisplay = medText.render("Level: Shop",True,(255,255,255))
+    Border = pygame.transform.scale(pygame.image.load("black.png"),(WIDTH,50))
+    DoubleDamage = pygame.transform.scale(pygame.image.load("DoubleDamage.png"),(75,75))
+    TripleDamage = pygame.transform.scale(pygame.image.load("TripleDamage.png"),(75,75))
+
+
+
     while (shopping):
         gameDisplay.blit(shopFront,(0,TOPBORDER))
-        Border = pygame.transform.scale(pygame.image.load("black.png"),(WIDTH,50))
         gameDisplay.blit(Border,(0,0))
         gameDisplay.blit(Border,(0,BOTTOMBORDER))
         gameDisplay.blit(TextBack,(300,TOPBORDER))
         pointDisplay = medText.render("Points: "+str(points),True,(255,255,255))
-        levelDisplay = medText.render("Level: Shop",True,(255,255,255))
         gameDisplay.blit(pointDisplay, (590,10))
         gameDisplay.blit(levelDisplay, (10,10))
-        ownedText = tinyText.render("Owned",True,(255,255,255))
-        activeText = tinyText.render("Active",True,(255,255,255))
         gameDisplay.blit(ownedText,(0,200))
         gameDisplay.blit(ownedText,(0,400))
         gameDisplay.blit(activeText,(0,450))
         gameDisplay.blit(Heal,(710,200))
+        gameDisplay.blit(DoubleDamage,(220,200))
+        gameDisplay.blit(TripleDamage,(340,200))
+
         gameDisplay.blit(CoolCane,(200,TOPBORDER))
         for event in pygame.event.get():
             if (event.type == pygame.QUIT):
@@ -697,7 +705,7 @@ level = 1
 global points 
 points = 0
 global instakill
-instakill = False
+instakill = True
 #TEXT ASSETS, these will never change so are global usage (because screw passing these into every single game window)
 global bigText
 bigText = pygame.font.SysFont('Arial MS', 90)
@@ -706,6 +714,6 @@ medText = pygame.font.SysFont('Arial MS', 50)
 global tinyText
 tinyText = pygame.font.SysFont('Arial MS', 25)
 
-titleScreen()
+#titleScreen()
 mainGameLoop()
 lose()
