@@ -234,7 +234,7 @@ class enemyBullet(Entity):
                     player.damage()
                     self.remove()
                     break
-            elif (self.yPos+self.yLength>=BOTTOMBORDER):
+        if (self.yPos+self.yLength>=BOTTOMBORDER):
                 self.remove()   
     def remove(self):
         bulletList.remove(self)
