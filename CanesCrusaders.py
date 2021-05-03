@@ -130,6 +130,10 @@ class Player(Entity):
     def __str__(self):
         return Entity.__str__(self)+",health:{}".format(self.health)
 
+    def remove(self):
+        playerList.remove(self)
+        entityDisplayList.remove(self)
+
 #enemy class
 class Enemy(Entity):
     def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=50,xLength=50,yLength=50,health=2,direction="right"):
@@ -329,7 +333,7 @@ def titleScreen():
     ajTitle = pygame.transform.scale(pygame.image.load("AJPNG.png"),(200,200))
     gameStart = False
     stage = "start"
-    while not gameStart:
+    while(not gameStart):
         for event in pygame.event.get():
             if (event.type == pygame.QUIT):
                 pygame.quit()
@@ -400,29 +404,30 @@ def titleScreen():
             
         pygame.display.update()
         fps.tick(30)
+    mainGameLoop()
 def shop():
     ToddShop = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(50,50))
     AjShop = pygame.transform.scale(pygame.image.load("AJPNG.png"),(50,50))
     hp = pygame.transform.scale(pygame.image.load("Cane Heart.png"),(30,30))
-    ToddPos = {"xPos":0,"yPos":0}
-    AjPos = {"xPos":0,"yPos":0}
-    shopping = True
-    global points
-    points += 1000
-    status = "What would you like to buy?"
     shopFront = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,BOTTOMBORDER-TOPBORDER))
     CoolCane = pygame.transform.scale(pygame.image.load("CoolCanePNG.png"),(100,100))
     TextBack = pygame.transform.scale(pygame.image.load("WhiteBorder.jpeg"),(500,100))
-    Heal = pygame.transform.scale(pygame.image.load("Cane Heart.png"),(75,75))
-    ownedText = tinyText.render("Owned",True,(255,255,255))
-    activeText = tinyText.render("Active",True,(255,255,255))
-    levelDisplay = medText.render("Level: Shop",True,(255,255,255))
     Border = pygame.transform.scale(pygame.image.load("black.png"),(WIDTH,50))
     DoubleDamage = pygame.transform.scale(pygame.image.load("DoubleDamage.png"),(75,75))
     DoubleBullet = pygame.transform.scale(pygame.image.load("DoubleTap.png"),(75,75))
     DoubleSpeed = pygame.transform.scale(pygame.image.load("X2speed.png"),(75,75))
     ShotPower = pygame.transform.scale(pygame.image.load("Shotgun.png"),(100,50))
     LaserPower = pygame.transform.scale(pygame.image.load("Laser.png"),(100,50))
+    Heal = pygame.transform.scale(pygame.image.load("Cane Heart.png"),(75,75))
+    ownedText = tinyText.render("Owned",True,(255,255,255))
+    activeText = tinyText.render("Active",True,(255,255,255))
+    levelDisplay = medText.render("Level: Shop",True,(255,255,255))
+    ToddPos = {"xPos":0,"yPos":0}
+    AjPos = {"xPos":0,"yPos":0}
+    shopping = True
+    global points
+    points += 1000
+    status = "What would you like to buy?"
 
     while(shopping):
         gameDisplay.blit(shopFront,(0,TOPBORDER))
@@ -443,8 +448,6 @@ def shop():
         gameDisplay.blit(DoubleSpeed,(590,200))
         gameDisplay.blit(ShotPower,(80,425))
         gameDisplay.blit(LaserPower,(210,425))
-
-
         gameDisplay.blit(CoolCane,(200,TOPBORDER))
         for event in pygame.event.get():
             if (event.type == pygame.QUIT):
@@ -504,7 +507,43 @@ def shop():
                 gameDisplay.blit(hp,(player.healthLocation+i*50,BOTTOMBORDER+10))
         pygame.display.flip()
 def lose():
-    pass
+    for shooter in range(len(shootList)):
+        shootList[0].remove()
+    print(shootList)
+    for enemy in range(len(enemyList)):
+        enemyList[0].remove()
+    print(enemyList)
+    for player in range(len(playerList)):
+        playerList[0].remove()
+    print(playerList)
+    for bullet in range(len(bulletList)):
+        bulletList[0].remove()
+    print(bulletList)
+    for entity in range(len(entityDisplayList)):
+        entityDisplayList[0].remove()
+    print(entityDisplayList)
+
+    background = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,HEIGHT))
+    action = False
+    while(not action):
+        gameDisplay.blit(background,(0,0))
+        for event in pygame.event.get():
+                if (event.type == pygame.QUIT):
+                    pygame.quit()
+                    action = True
+                    os._exit(1)
+                    return False
+                if (event.type ==pygame.KEYDOWN):
+                    if (event.key == pygame.K_ESCAPE):
+                        pygame.quit()
+                        action = True
+                        os._exit(1)
+                        return False
+                    if(event.key == pygame.K_SPACE or event.key ==pygame.K_RETURN):
+                        action = True
+        pygame.display.flip()
+    titleScreen()
+                    
 def mainGameLoop():
     global points
     global difficulty
@@ -717,7 +756,7 @@ def mainGameLoop():
                 collectiveHealth += 1
                 gameDisplay.blit(hp,(player.healthLocation+i*50,BOTTOMBORDER+10))
         if collectiveHealth <= 0:
-            break
+            lose()
         if instakill:
             for enemy in enemyList:
                 enemy.remove()
@@ -746,6 +785,8 @@ medText = pygame.font.SysFont('Arial MS', 50)
 global tinyText
 tinyText = pygame.font.SysFont('Arial MS', 25)
 
-#titleScreen()
+
+
+titleScreen()
 mainGameLoop()
 lose()
