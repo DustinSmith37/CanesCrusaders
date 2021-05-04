@@ -69,11 +69,12 @@ class Player(Entity):
         self.health = health
         self.invincibility = 0
         self.specialCooldown = 0
+        self.bulletnumber = 1
         self.direction = {"up":False,"left":False,"down":False,"right":False}
         self.healthLocation = healthLocation
         playerList.append(self)
         self.alive = True
-        self.upgrades = {"doubleShoot":False,"doubleDamage":False,"doubleDamage2":False,"doubleDamage3":False,"fastMove":False}
+        self.upgrades = {"doubleShoot":False,"doubleDamage":False,"doubleDamage2":False,"fastMove1":False,"fastMove2":False}
         self.specialActive = "shotgun"
         self.specialBought = {"shotgun":True,"laser":False,"minigun":False,"cannon":False,"superbreaker":False,"shield":False}
         #list of specials
@@ -84,15 +85,45 @@ class Player(Entity):
         #superbreaker: fires all the way to the top dealing damage as it goes
         #shield: I frames on demand
     def shoot(self):
-        Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/2,yPos=self.yPos)
+        for i in range(0,self.bulletnumber):
+            if(self.upgrades["doubleShoot"]):
+                Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-35,yPos=self.yPos)
+                Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-15,yPos=self.yPos)
+            else:
+                Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/2,yPos=self.yPos)
+        
 
     def special(self):
         if(self.specialActive=="shotgun"):
-            Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/1,yPos=self.yPos)
-            Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/1.5,yPos=self.yPos)
-            Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/3,yPos=self.yPos)
+            for i in range(0,self.bulletnumber):
+                if(self.upgrades["doubleShoot"]):
+                    Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-20,yPos=self.yPos)
+                    Bullet(image=self.bulletSprite,xPos=self.xPos,yPos=self.yPos)
+                    Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength,yPos=self.yPos)
+                    Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-30,yPos=self.yPos)
+                    Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-40,yPos=self.yPos)
+                    Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-10,yPos=self.yPos)
+                else:
+                    Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-25,yPos=self.yPos)
+                    Bullet(image=self.bulletSprite,xPos=self.xPos,yPos=self.yPos)
+                    Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength,yPos=self.yPos)
+            self.specialCooldown = 90
+        if(self.specialActive=="laser"):
+            for i in range(0,self.bulletnumber):
+                if (self.upgrades["doubleShoot"]):
+                    for y in range(self.yPos,TOPBORDER,-10):
+                        Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-35,yPos=y,yMove = 20)
+                        Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-15,yPos=y,yMove = 20)
+                else:
+                    for y in range(self.yPos,TOPBORDER,-10):
+                        Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/2,yPos=y,yMove = 20)
+            self.specialCooldown = 90
+        if(self.specialActive=="shield"):
+            self.invincibility = 30
+            self.specialCooldown = 150    
 
-        self.specialCooldown = 90
+
+        
 
 
     def damage(self):
@@ -128,7 +159,10 @@ class Player(Entity):
                     break
 
     def __str__(self):
-        return Entity.__str__(self)+",health:{}".format(self.health)
+        if(self == playerList[0]):
+            return "Todd"
+        elif(self == playerList[1]):
+            return "AJ"
 
     def remove(self):
         playerList.remove(self)
@@ -264,22 +298,22 @@ def levelCreator(back,level,border,DefEnemy):
     for i in range(0,13):
         Enemy(DefEnemy, xPos=(60*i))
 
-def addEnemy(Def,Fast,Shooter,Large,bulletColorEnemy):
+def addEnemy(level,Def,Fast,Shooter,Large,bulletColorEnemy):
     chance = randint(0,30)
     if(chance in [14,15,16,17]):
-        speedEnemy(Fast,xPos=0)
-        Enemy(Def, xPos=0)
+        speedEnemy(Fast,xPos=0,health = level+level*2)
+        Enemy(Def, xPos=0,health = level+1)
     elif(chance in [19,21,22]):
-        shootEnemy(Shooter, xPos=0,bulletSprite=bulletColorEnemy)
+        shootEnemy(Shooter, xPos=0,bulletSprite=bulletColorEnemy,health = level+3)
     elif(chance in [20]):
-        tankEnemy(Large,xPos=randint(0,700))
-        Enemy(Def,xPos=0)
+        tankEnemy(Large,xPos=randint(0,700),health = 10 * level)
+        Enemy(Def,xPos=0,health=level+1)
     else:
-        Enemy(Def, xPos=0)
+        Enemy(Def, xPos=0,health=level+1)
 
 def purchase(buyer,buyerX,buyerY):
     global points
-    buyGrid=[{"doubleShoot":250,"doubleDamage":500,"doubleDamage2":1000,"doubleDamage3":2000,"fastMove":500,"heal":100},{"shotgun":0, "laser":250}]
+    buyGrid=[{"doubleShoot":250,"doubleDamage":500,"doubleDamage2":1000,"fastMove1":2000,"fastMove2":500,"heal":100},{"shotgun":0, "laser":250, "cannon":250, "superbreaker":250, "minigun":250, "shield":250}]
     upgrade = None
     special = None
     index = 0
@@ -299,27 +333,59 @@ def purchase(buyer,buyerX,buyerY):
             else:
                 index+=1
     if upgrade != None:
-        if points >= buyGrid[0][upgrade]:
-            if upgrade == "heal":
-                buyer.heal()
-                points -= buyGrid[0]["heal"]
-                status = "You have healed! Well done!"
+        if (upgrade == "heal" or buyer.upgrades[upgrade]==False):
+            if points >= buyGrid[0][upgrade]:
+                if (upgrade == "heal"):
+                    buyer.heal()
+                    points -= buyGrid[0]["heal"]
+                    status = "You have healed! Well done!"
+                elif(upgrade=="doubleDamage"):
+                    buyer.bulletnumber*=2
+                    buyer.upgrades["doubleDamage"]=True
+
+                    points-=buyGrid[0]["doubleDamage"]
+                    status = "You now deal double damage, {}.".format(buyer)
+                elif(upgrade=="doubleDamage2"):
+                    buyer.upgrades["doubleDamage2"]=True
+                    buyer.bulletnumber*=2
+                    points-=buyGrid[0]["doubleDamage"]
+                    status = "You now deal double damage again, {}.".format(buyer)
+                elif(upgrade =="doubleShoot"):
+                    buyer.upgrades["doubleShoot"]=True
+                    points -=buyGrid[0]["doubleShoot"]
+                    status = "You now fire twice as many bullets, {}!".format(buyer)
+
+                elif(upgrade == "fastMove"):
+                    buyer.upgrades["fastMove"]=True
+                    buyer.xMove = buyer.xMove *2
+                    points -= buyGrid[0]["fastMove"]
+                    status = "You have purchased double horizontal speed, {}!".format(buyer)
+                elif(upgrade =="fastMove2"):
+                    buyer.upgrades["fastMove2"]=True
+                    buyer.yMove = buyer.yMove *2
+                    points -= buyGrid[0]["fastMove2"]
+                    status = "You have purchased double vertical speed, {}!".format(buyer)
+                    
+                else:
+
+                    points -= buyGrid[0][upgrade]
+                    buyer.upgrades[upgrade]=True
+                    status = "You have bought an upgrade! Well done!"
             else:
-                points -= buyGrid[0][upgrade]
-                buyer.upgrades[upgrade]=True
-                status = "You have bought an upgrade! Well done!"
+                status = "You do not have enough points!"
         else:
-            status = "You do not have enough points!"
+            status = "You've already bought this upgrade!"
     elif special != None:
-        if points >= buyGrid[1][special]:
+        if buyer.specialBought[special]==True:
+                buyer.specialActive = special
+                status = "You have swapped your active special to {}!".format(special)
+        elif points >= buyGrid[1][special]:
             if buyer.specialBought[special] ==False:
                 points -= buyGrid[1][special]
                 buyer.specialBought[special]=True
                 buyer.specialActive = special
-                status = "You have bought a special move! Well done!"
-            if buyer.specialBought[special]==True:
-                buyer.specialActive = special
-                status = "You have swapped your active special. Well done!"
+                status = "You have bought {}!".format(special)
+            
         else:
             status = "You do not have enough points!"
     return status
@@ -409,7 +475,7 @@ def shop():
     ToddShop = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(50,50))
     AjShop = pygame.transform.scale(pygame.image.load("AJPNG.png"),(50,50))
     hp = pygame.transform.scale(pygame.image.load("Cane Heart.png"),(30,30))
-    shopFront = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,BOTTOMBORDER-TOPBORDER))
+    shopFront = pygame.transform.scale(pygame.image.load("StoreBack.png"),(WIDTH,BOTTOMBORDER-TOPBORDER))
     CoolCane = pygame.transform.scale(pygame.image.load("CoolCanePNG.png"),(100,100))
     TextBack = pygame.transform.scale(pygame.image.load("WhiteBorder.jpeg"),(500,100))
     Border = pygame.transform.scale(pygame.image.load("black.png"),(WIDTH,50))
@@ -418,15 +484,19 @@ def shop():
     DoubleSpeed = pygame.transform.scale(pygame.image.load("X2speed.png"),(75,75))
     ShotPower = pygame.transform.scale(pygame.image.load("Shotgun.png"),(100,50))
     LaserPower = pygame.transform.scale(pygame.image.load("Laser.png"),(100,50))
+    Shield = pygame.transform.scale(pygame.image.load("Shield.png"),(75,75))
+    Minigun = pygame.transform.scale(pygame.image.load("Minigun.png"),(75,75))
+    SBreaker = pygame.transform.scale(pygame.image.load("SBreaker.png"),(75,75))
+    Cannon = pygame.transform.scale(pygame.image.load("Cannon.png"),(75,75))
     Heal = pygame.transform.scale(pygame.image.load("Cane Heart.png"),(75,75))
-    ownedText = tinyText.render("Owned",True,(255,255,255))
-    activeText = tinyText.render("Active",True,(255,255,255))
+    upgradeText = tinyText.render("Upgrades",True,(255,255,255))
+    specialText = tinyText.render("Specials",True,(255,255,255))
     levelDisplay = medText.render("Level: Shop",True,(255,255,255))
     ToddPos = {"xPos":0,"yPos":0}
     AjPos = {"xPos":0,"yPos":0}
     shopping = True
     global points
-    points += 1000
+    points = points
     status = "What would you like to buy?"
 
     while(shopping):
@@ -437,18 +507,22 @@ def shop():
         pointDisplay = medText.render("Points: "+str(points),True,(255,255,255))
         gameDisplay.blit(pointDisplay, (590,10))
         gameDisplay.blit(levelDisplay, (10,10))
-        gameDisplay.blit(ownedText,(0,200))
-        gameDisplay.blit(ownedText,(0,400))
-        gameDisplay.blit(activeText,(0,450))
+        gameDisplay.blit(upgradeText,(0,225))
+        gameDisplay.blit(specialText,(0,430))
         gameDisplay.blit(Heal,(710,200))
         gameDisplay.blit(DoubleBullet,(90,200))
         gameDisplay.blit(DoubleDamage,(220,200))
         gameDisplay.blit(DoubleDamage,(340,200))
-        gameDisplay.blit(DoubleDamage,(465,200))
+        gameDisplay.blit(DoubleSpeed,(465,200))
         gameDisplay.blit(DoubleSpeed,(590,200))
         gameDisplay.blit(ShotPower,(80,425))
         gameDisplay.blit(LaserPower,(210,425))
         gameDisplay.blit(CoolCane,(200,TOPBORDER))
+        gameDisplay.blit(Shield,(710,400))
+        gameDisplay.blit(Minigun,(590,400))
+        gameDisplay.blit(Cannon,(340,400))
+        gameDisplay.blit(SBreaker,(465,400))
+
         for event in pygame.event.get():
             if (event.type == pygame.QUIT):
                 pygame.quit()
@@ -500,8 +574,8 @@ def shop():
         if Multiplayer:
             gameDisplay.blit(AjShop,(AjPos["xPos"]*125+130,AjPos["yPos"]*200+300))
         
-        RC3Message = tinyText.render("RC3: "+str(status),True,(0,0,0))
-        gameDisplay.blit(RC3Message,(320,100))
+        RCMessage = tinyText.render("RC: "+str(status),True,(0,0,0))
+        gameDisplay.blit(RCMessage,(320,100))
         for player in playerList:
             for i in range(player.health):
                 gameDisplay.blit(hp,(player.healthLocation+i*50,BOTTOMBORDER+10))
@@ -552,7 +626,7 @@ def mainGameLoop():
     enemies = 13
     #Bullet Sprites
     bulletColorEnemy=pygame.transform.scale(pygame.image.load("bulletColorEnemy.jpg"),(5,10))
-    bulletColorPlayer=pygame.transform.scale(pygame.image.load("bulletColorPlayer.jpg"),(5,10))
+    bulletColorPlayer=pygame.transform.scale(pygame.image.load("Finger.png"),(20,30))
     #Background Sprites
     CanesBack = pygame.transform.scale(pygame.image.load("CanesBack.jpg"),(WIDTH,BOTTOMBORDER-TOPBORDER))
     Border = pygame.transform.scale(pygame.image.load("black.png"),(WIDTH,50))
@@ -622,19 +696,19 @@ def mainGameLoop():
         if(enemies>0):
             if(topClear):
                 if(level ==1):
-                    addEnemy(ZaxbyDef,ZaxbyFast,ZaxbyShoot,ZaxbyLarge,bulletColorEnemy)
+                    addEnemy(level,ZaxbyDef,ZaxbyFast,ZaxbyShoot,ZaxbyLarge,bulletColorEnemy)
                 elif(level ==2):
-                    addEnemy(SaladDef,SaladFast,SaladShoot,SaladLarge,bulletColorEnemy)
+                    addEnemy(level,SaladDef,SaladFast,SaladShoot,SaladLarge,bulletColorEnemy)
                 elif(level ==3):
-                    addEnemy(PopDef,PopFast,PopShoot,PopLarge,bulletColorEnemy)
+                    addEnemy(level,PopDef,PopFast,PopShoot,PopLarge,bulletColorEnemy)
                 elif(level ==4):
-                    addEnemy(BBWDef,BBWFast,BBWShoot,BBWLarge,bulletColorEnemy)
+                    addEnemy(level,BBWDef,BBWFast,BBWShoot,BBWLarge,bulletColorEnemy)
                 elif(level ==5):
-                    addEnemy(ChurchDef,ChurchFast,ChurchShoot,ChurchLarge,bulletColorEnemy)
+                    addEnemy(level,ChurchDef,ChurchFast,ChurchShoot,ChurchLarge,bulletColorEnemy)
                 elif(level ==6):
-                    addEnemy(KFCDef,KFCFast,KFCShoot,KFCLarge,bulletColorEnemy)
+                    addEnemy(level,KFCDef,KFCFast,KFCShoot,KFCLarge,bulletColorEnemy)
                 elif(level ==7):
-                    addEnemy(ChickDef,ChickFast,ChickShoot,ChickLarge,bulletColorEnemy)
+                    addEnemy(level,ChickDef,ChickFast,ChickShoot,ChickLarge,bulletColorEnemy)
                 enemies-=1
                 
         for event in pygame.event.get():
@@ -788,5 +862,3 @@ tinyText = pygame.font.SysFont('Arial MS', 25)
 
 
 titleScreen()
-mainGameLoop()
-lose()
