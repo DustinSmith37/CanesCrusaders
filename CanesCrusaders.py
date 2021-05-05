@@ -63,19 +63,22 @@ class Entity():
         
 #player class
 class Player(Entity):
-    def __init__(self,image,bulletSprite,xPos=0,yPos=TOPBORDER,xMove=7,yMove=5,xLength=50,yLength=50,health=3,healthLocation=5):
+    def __init__(self,image,bulletSprite,cannonSprite,superBreaker,xPos=0,yPos=TOPBORDER,xMove=7,yMove=5,xLength=50,yLength=50,health=3,healthLocation=5):
         Entity.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength)
         self.bulletSprite=bulletSprite
+        self.cannonSprite=cannonSprite
+        self.superBreaker=superBreaker
         self.health = health
         self.invincibility = 0
         self.specialCooldown = 0
         self.bulletnumber = 1
+        self.miniFire = 0
         self.direction = {"up":False,"left":False,"down":False,"right":False}
         self.healthLocation = healthLocation
         playerList.append(self)
         self.alive = True
         self.upgrades = {"doubleShoot":False,"doubleDamage":False,"doubleDamage2":False,"fastMove1":False,"fastMove2":False}
-        self.specialActive = "shotgun"
+        self.specialActive = "superbreaker"
         self.specialBought = {"shotgun":True,"laser":False,"minigun":False,"cannon":False,"superbreaker":False,"shield":False}
         #list of specials
         #shotgun: 3/6 shots based on upgrade
@@ -107,25 +110,40 @@ class Player(Entity):
                     Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-25,yPos=self.yPos)
                     Bullet(image=self.bulletSprite,xPos=self.xPos,yPos=self.yPos)
                     Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength,yPos=self.yPos)
-            self.specialCooldown = 90
-        if(self.specialActive=="laser"):
+            self.specialCooldown = 60
+        elif(self.specialActive=="laser"):
             for i in range(0,self.bulletnumber):
                 if (self.upgrades["doubleShoot"]):
                     for y in range(self.yPos,TOPBORDER,-10):
-                        Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-35,yPos=y,yMove = 20)
-                        Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-15,yPos=y,yMove = 20)
+                        Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-35,yPos=self.yPos,yMove = 20)
+                        Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-15,yPos=self.yPos,yMove = 20)
                 else:
                     for y in range(self.yPos,TOPBORDER,-10):
                         Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/2,yPos=y,yMove = 20)
+            self.specialCooldown = 60
+        elif(self.specialActive=="minigun"):
+            for i in range(0,self.bulletnumber):
+                if (self.upgrades["doubleShoot"]):
+                    self.miniFire+=20
+                else:
+                    self.miniFire+10
             self.specialCooldown = 90
-        if(self.specialActive=="shield"):
+        elif(self.specialActive=="cannon"):
+            CannonBullet(image=self.cannonSprite,radius=self.bulletnumber,xPos=self.xPos+self.xLength/2,yPos=self.yPos,yMove = 10)
+            self.specialCooldown = 90
+        elif(self.specialActive=="superbreaker"):
+            SuperBullet(image=self.superBreaker,damage=self.bulletnumber,xPos=self.xPos,yPos=self.yPos-50,yMove = 5)
+            self.specialCooldown = 150
+        elif(self.specialActive=="shield"):
             self.invincibility = 30
-            self.specialCooldown = 150    
-
-
-        
-
-
+            self.specialCooldown = 150 
+           
+    def minigunShoot(self):
+        if (self.specialActive=="minigun"):
+            if (self.miniFire>0):
+                if (self.miniFire%2==0):
+                    Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/2,yPos=self.yPos,yMove = 20)
+                self.miniFire-=1
     def damage(self):
         if(self.invincibility==0 and self.alive):
             self.health-=1
@@ -229,7 +247,7 @@ class shootEnemy(Enemy):
         entityDisplayList.remove(self)
 
 class tankEnemy(Enemy):
-    def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=2,xLength=100,yLength=100,health=10,direction="right"):
+    def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=1,xLength=100,yLength=100,health=10,direction="right"):
         Enemy.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength,health,direction)
     def autoMove(self):
         self.moveDown()
@@ -245,12 +263,12 @@ class Bullet(Entity):
     def autoMove(self):
         self.yPos-=self.yMove
     def hitDetect(self):
+        global points
         for enemy in enemyList:
             if (enemy.xPos+enemy.xLength>self.xPos and enemy.xPos<self.xPos):
                 if (enemy.yPos+enemy.yLength>self.yPos and enemy.yPos<self.yPos):
                     enemy.damage()
                     self.remove()
-                    global points
                     points +=10
                     break
         if (self.yPos<=TOPBORDER):
@@ -277,7 +295,47 @@ class enemyBullet(Entity):
     def remove(self):
         bulletList.remove(self)
         entityDisplayList.remove(self)
-    
+class CannonBullet(Bullet):
+    def __init__(self,image,radius = 1,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=5,yLength=10):
+        Bullet.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength)
+        self.radius = radius*100
+    def hitDetect(self):
+        global points
+        dead = False
+        for enemy in enemyList:
+            if (enemy.xPos+enemy.xLength>self.xPos and enemy.xPos<self.xPos):
+                if (enemy.yPos+enemy.yLength>self.yPos and enemy.yPos<self.yPos):
+                    dead = True
+                    enemy.damage()
+                    self.remove()
+                    points +=10
+                    break
+        if (dead):
+            for enemy in enemyList:
+                if (enemy.xPos+enemy.xLength>self.xPos-self.radius and enemy.xPos<self.xPos+self.radius):
+                    if (enemy.yPos+enemy.yLength>self.yPos-self.radius and enemy.yPos<self.yPos+self.radius):
+                        for i in range(0,3):
+                            if (enemy.health > 0):
+                                enemy.damage()
+                                points +=10
+        elif (self.yPos<=TOPBORDER):
+            self.remove()
+class SuperBullet(Bullet):
+    def __init__(self,image,damage,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=50,yLength=50):
+        Bullet.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength)
+        self.damage = damage
+    def hitDetect(self):
+        global points
+        for enemy in enemyList:
+            if (enemy.xPos+enemy.xLength>self.xPos and enemy.xPos<self.xPos):
+                if (enemy.yPos+enemy.yLength>self.yPos and enemy.yPos<self.yPos):
+                    for i in range(0,5*self.damage):
+                        if (enemy.health)>0:
+                            enemy.damage()
+                            points +=10
+        if (self.yPos<=TOPBORDER):
+            self.remove()
+
 def playerMove(player):
     if (player.direction["up"]==True):
         player.moveUp()
@@ -627,6 +685,8 @@ def mainGameLoop():
     #Bullet Sprites
     bulletColorEnemy=pygame.transform.scale(pygame.image.load("bulletColorEnemy.jpg"),(5,10))
     bulletColorPlayer=pygame.transform.scale(pygame.image.load("Finger.png"),(20,30))
+    bulletColorCannon=pygame.transform.scale(pygame.image.load("Finger.png"),(20,30))
+    bulletColorSuper=pygame.transform.scale(pygame.image.load("Finger.png"),(50,50))
     #Background Sprites
     CanesBack = pygame.transform.scale(pygame.image.load("CanesBack.jpg"),(WIDTH,BOTTOMBORDER-TOPBORDER))
     Border = pygame.transform.scale(pygame.image.load("black.png"),(WIDTH,50))
@@ -673,9 +733,9 @@ def mainGameLoop():
     ToddPng = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(50,50))
     AjPng = pygame.transform.scale(pygame.image.load("AJPNG.png"),(50,50))
     hp = pygame.transform.scale(pygame.image.load("Cane Heart.png"),(30,30))
-    Todd = Player(ToddPng,xLength=50,yLength=50,xPos=200,yPos=500,bulletSprite=bulletColorPlayer)
+    Todd = Player(ToddPng,xLength=50,yLength=50,xPos=200,yPos=500,bulletSprite=bulletColorPlayer,cannonSprite=bulletColorCannon,superBreaker=bulletColorSuper)
     if(Multiplayer):
-        Aj = Player(AjPng,xLength=50,yLength=50,xPos=600,yPos=500, healthLocation=500,bulletSprite=bulletColorPlayer)
+        Aj = Player(AjPng,xLength=50,yLength=50,xPos=600,yPos=500, healthLocation=500,bulletSprite=bulletColorPlayer,cannonSprite=bulletColorCannon,superBreaker=bulletColorSuper)
     
 
 
@@ -797,6 +857,8 @@ def mainGameLoop():
             shootEnemy.fire(enemy)
         for player in playerList:
             player.hitDetect()
+        for player in playerList:
+            player.minigunShoot()
         if enemyList == []:
             for bullet in range(len(bulletList)):
                 bulletList[0].remove()
