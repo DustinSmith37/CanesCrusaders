@@ -1,7 +1,7 @@
 #import the needed modules, pygame is obvious, time for tick speed,
 #and os for leaving the game without causing errors
-#THIS IS A TEST COMMENT TO MAKE SURE GITHUB NO GAY
-#WHAT IF GITHUB GAY THO???
+#uncomment when on pi
+#import RPi.GPIO as GPIO
 import pygame, time, os
 from random import randint
 #initialize pygame, its font's and it's music player
@@ -12,7 +12,7 @@ pygame.mixer.init()
 fps = pygame.time.Clock()
 #display the pygame window, set it to be 800 by 600 and be fullscreen (when not debugging)
 WIDTH = 800
-HEIGHT = 600
+HEIGHT = 500
 TOPBORDER = 50
 BOTTOMBORDER = HEIGHT-50
 gameDisplay = pygame.display.set_mode((WIDTH,HEIGHT),)#pygame.FULLSCREEN)
@@ -26,6 +26,13 @@ enemyList=[]
 bulletList=[]
 shootList=[]
 
+player1 =[18,19,20,21]
+p1butts = [23,22]
+player2 = [17,16,13,12]
+p2butts = [6,5]
+playersel = [24,25]
+
+inputs = [24,25,18,19,20,21,22,23,12,13,17,16,6,5]
 
 #entity class
 class Entity():
@@ -63,11 +70,13 @@ class Entity():
         
 #player class
 class Player(Entity):
-    def __init__(self,image,bulletSprite,cannonSprite,superBreaker,xPos=0,yPos=TOPBORDER,xMove=7,yMove=5,xLength=50,yLength=50,health=3,healthLocation=5):
-        Entity.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength)
+    def __init__(self,normimage,invimage,bulletSprite,cannonSprite,superBreaker,xPos=0,yPos=TOPBORDER,xMove=7,yMove=5,xLength=50,yLength=50,health=3,healthLocation=5):
+        Entity.__init__(self,normimage,xPos,yPos,xMove,yMove,xLength,yLength)
         self.bulletSprite=bulletSprite
         self.cannonSprite=cannonSprite
         self.superBreaker=superBreaker
+        self.normimage=normimage
+        self.invimage = invimage
         self.health = health
         self.invincibility = 0
         self.specialCooldown = 0
@@ -78,7 +87,7 @@ class Player(Entity):
         playerList.append(self)
         self.alive = True
         self.upgrades = {"doubleShoot":False,"doubleDamage":False,"doubleDamage2":False,"fastMove1":False,"fastMove2":False}
-        self.specialActive = "superbreaker"
+        self.specialActive = "shotgun"
         self.specialBought = {"shotgun":True,"laser":False,"minigun":False,"cannon":False,"superbreaker":False,"shield":False}
         #list of specials
         #shotgun: 3/6 shots based on upgrade
@@ -135,7 +144,7 @@ class Player(Entity):
             SuperBullet(image=self.superBreaker,damage=self.bulletnumber,xPos=self.xPos,yPos=self.yPos-50,yMove = 5)
             self.specialCooldown = 150
         elif(self.specialActive=="shield"):
-            self.invincibility = 30
+            self.invincibility = 60
             self.specialCooldown = 150 
            
     def minigunShoot(self):
@@ -147,7 +156,7 @@ class Player(Entity):
     def damage(self):
         if(self.invincibility==0 and self.alive):
             self.health-=1
-            self.invincibility = 30
+            self.invincibility = 45
         else:
             pass
         if(self.health==0 and self.alive):
@@ -451,13 +460,35 @@ def purchase(buyer,buyerX,buyerY):
 def titleScreen():
     #assets for title screen
     global Multiplayer
+    global points
+    points = 0
     background = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,HEIGHT))
     guide = pygame.transform.scale(pygame.image.load("CanesBack.jpg"),(WIDTH-200,HEIGHT-200))
     toddTitle = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(200,200))
     ajTitle = pygame.transform.scale(pygame.image.load("AJPNG.png"),(200,200))
+    coolCane = pygame.transform.flip(pygame.image.load("CoolCanePNG.png"),1,0)
     gameStart = False
     stage = "start"
     while(not gameStart):
+        # for i in range(len(inputs)):
+        #     if(GPIO.input(inputs[i])):
+        #         if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
+        #             pygame.quit()
+        #             gameEnd = True
+        #             os._exit(1)
+        #         if ((GPIO.input(inputs[7]) or GPIO.input(inputs[12])) and (stage == "guide")):
+        #             if (Multiplayer):
+        #                 stage = "inform2"
+        #             else:
+        #                 stage = "inform1"
+        #         if ((GPIO.input(inputs[6]) or GPIO.input(inputs[13]))and(stage == "inform1" or stage == "inform2")):
+        #             gameStart = True
+        #         if(GPIO.input(inputs[0])):
+        #             stage = "guide"
+        #             Multiplayer = False
+        #         elif(GPIO.input(inputs[1])):
+        #             stage = "guide"
+        #             Multiplayer = True
         for event in pygame.event.get():
             if (event.type == pygame.QUIT):
                 pygame.quit()
@@ -481,12 +512,13 @@ def titleScreen():
         gameDisplay.blit(background,(0,0))
         if (stage == "start"):
             line1 = bigText.render("CANES CRUSADERS",True,(255,255,255))
-            gameDisplay.blit(line1,(100,150))
+            gameDisplay.blit(line1,(100,75))
             line2 = medText.render("THE GREAT CHICKEN WARS",True,(255,0,0))
-            gameDisplay.blit(line2,(160,220))
-            gameDisplay.blit(toddTitle,(300,350))
+            gameDisplay.blit(line2,(160,160))
+            gameDisplay.blit(toddTitle,(200,350))
+            gameDisplay.blit(coolCane,(350,300))
             line2 = medText.render("SELECT NUMBER OF PLAYERS TO CONTINUE",True,(255,0,0))
-            gameDisplay.blit(line2,(15,260))
+            gameDisplay.blit(line2,(15,210))
 
         if (stage == "inform2"):
             line1 = bigText.render("MEET YOUR HEROES",True,(255,255,255))
@@ -512,14 +544,14 @@ def titleScreen():
             line1 = bigText.render("MEET YOUR HERO",True,(255,255,255))
             gameDisplay.blit(line1,(120,50))
             line2 = medText.render("TODD GRAVES",True,(255,255,255))
-            gameDisplay.blit(line2,(70,250))
+            gameDisplay.blit(line2,(280,200))
             line3 = medText.render("GOD KING OF",True,(255,255,255))
-            gameDisplay.blit(line3,(80,300))
+            gameDisplay.blit(line3,(300,250))
             line6 = medText.render("PRESS ANY BUTTON TO CONTINUE",True,(255,0,0))
             gameDisplay.blit(line6,(100,120))
             line7 = medText.render("MANKIND",True,(255,255,255))
-            gameDisplay.blit(line7,(110,350))
-            gameDisplay.blit(toddTitle,(100,400))
+            gameDisplay.blit(line7,(310,300))
+            gameDisplay.blit(toddTitle,(300,350))
         
         if (stage == "guide"):
             line1 = bigText.render("HOW TO PLAY",True,(255,255,255))
@@ -566,21 +598,57 @@ def shop():
         gameDisplay.blit(pointDisplay, (590,10))
         gameDisplay.blit(levelDisplay, (10,10))
         gameDisplay.blit(upgradeText,(0,225))
-        gameDisplay.blit(specialText,(0,430))
+        gameDisplay.blit(specialText,(0,375))
         gameDisplay.blit(Heal,(710,200))
         gameDisplay.blit(DoubleBullet,(90,200))
         gameDisplay.blit(DoubleDamage,(220,200))
         gameDisplay.blit(DoubleDamage,(340,200))
         gameDisplay.blit(DoubleSpeed,(465,200))
         gameDisplay.blit(DoubleSpeed,(590,200))
-        gameDisplay.blit(ShotPower,(80,425))
-        gameDisplay.blit(LaserPower,(210,425))
+        gameDisplay.blit(ShotPower,(80,375))
+        gameDisplay.blit(LaserPower,(210,375))
         gameDisplay.blit(CoolCane,(200,TOPBORDER))
-        gameDisplay.blit(Shield,(710,400))
-        gameDisplay.blit(Minigun,(590,400))
-        gameDisplay.blit(Cannon,(340,400))
-        gameDisplay.blit(SBreaker,(465,400))
+        gameDisplay.blit(Shield,(710,350))
+        gameDisplay.blit(Minigun,(590,350))
+        gameDisplay.blit(Cannon,(340,350))
+        gameDisplay.blit(SBreaker,(465,350))
 
+        # for i in range(len(inputs)):
+        #     if(GPIO.input(inputs[i])):
+        #         if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
+        #             pygame.quit()
+        #             shopping = False
+        #             os._exit(1)
+        #         if (GPIO.input(inputs[0]) or GPIO.input(inputs[1])):
+        #             shopping  = False
+        #         #Todd's selection
+        #         if (GPIO.input(inputs[4])):
+        #             if (ToddPos["xPos"] >0):
+        #                 ToddPos["xPos"] -= 1
+        #         if (GPIO.input(inputs[5])):
+        #             if (ToddPos["xPos"]<5):
+        #                 ToddPos["xPos"] += 1
+        #         if (GPIO.input(inputs[2])):
+        #             if (ToddPos["yPos"] >0):
+        #                 ToddPos["yPos"] -= 1
+        #         if (GPIO.input(inputs[3])):
+        #             if (ToddPos["yPos"]<1):
+        #                 ToddPos["yPos"] += 1
+                    
+        #         #AJ's selection
+        #         if(Multiplayer):
+        #             if (GPIO.input(inputs[9])):
+        #                 if (AjPos["xPos"] >0):
+        #                     AjPos["xPos"] -= 1
+        #             if (GPIO.input(inputs[8])):
+        #                 if (AjPos["xPos"]<5):
+        #                     AjPos["xPos"] += 1
+        #             if (GPIO.input(inputs[10])):
+        #                 if (AjPos["yPos"] >0):
+        #                     AjPos["yPos"] -= 1
+        #             if (GPIO.input(inputs[11])):
+        #                 if (AjPos["yPos"]<1):
+        #                     AjPos["yPos"] += 1
         for event in pygame.event.get():
             if (event.type == pygame.QUIT):
                 pygame.quit()
@@ -622,15 +690,20 @@ def shop():
                         if (AjPos["yPos"]<1):
                             AjPos["yPos"] += 1
                 #Todd and AJ's firing (space and enter respectively)
+                # if (GPIO.input(inputs[7])):
+                #     status = purchase(playerList[0],ToddPos["xPos"],ToddPos["yPos"])
+                # if(Multiplayer):
+                #     if (GPIO.input(inputs[12])):
+                #         status = purchase(playerList[1],AjPos["xPos"],AjPos["yPos"])
                 if (event.key == pygame.K_SPACE):
                     status = purchase(playerList[0],ToddPos["xPos"],ToddPos["yPos"])
                 if(Multiplayer):
                     if (event.key == pygame.K_RETURN):
                         status = purchase(playerList[1],AjPos["xPos"],AjPos["yPos"])
-        fps.tick(30)
-        gameDisplay.blit(ToddShop,(ToddPos["xPos"]*125+75,ToddPos["yPos"]*200+300))
+        fps.tick(15)
+        gameDisplay.blit(ToddShop,(ToddPos["xPos"]*125+75,ToddPos["yPos"]*100+300))
         if Multiplayer:
-            gameDisplay.blit(AjShop,(AjPos["xPos"]*125+130,AjPos["yPos"]*200+300))
+            gameDisplay.blit(AjShop,(AjPos["xPos"]*125+130,AjPos["yPos"]*100+300))
         
         RCMessage = tinyText.render("RC: "+str(status),True,(0,0,0))
         gameDisplay.blit(RCMessage,(320,100))
@@ -639,26 +712,37 @@ def shop():
                 gameDisplay.blit(hp,(player.healthLocation+i*50,BOTTOMBORDER+10))
         pygame.display.flip()
 def lose():
+    global points
     for shooter in range(len(shootList)):
         shootList[0].remove()
-    print(shootList)
     for enemy in range(len(enemyList)):
         enemyList[0].remove()
-    print(enemyList)
     for player in range(len(playerList)):
         playerList[0].remove()
-    print(playerList)
     for bullet in range(len(bulletList)):
         bulletList[0].remove()
-    print(bulletList)
     for entity in range(len(entityDisplayList)):
         entityDisplayList[0].remove()
-    print(entityDisplayList)
 
     background = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,HEIGHT))
+    gameOver = bigText.render("Game Over",True,(255,255,255))
+    score = medText.render("Your score: {}".format(points),True,(255,255,255))
     action = False
     while(not action):
         gameDisplay.blit(background,(0,0))
+        gameDisplay.blit(gameOver,(200,200))
+        gameDisplay.blit(score,(260,300))
+
+        # for i in range(len(inputs)):
+        #     if(GPIO.input(inputs[i])):
+        #         if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
+        #             pygame.quit()
+        #             action = True
+        #             os._exit(1)
+        #             return False
+        #         if(GPIO.input(inputs[7]) or GPIO.input(inputs[12])):
+        #             action = True
+        #             points = 0
         for event in pygame.event.get():
                 if (event.type == pygame.QUIT):
                     pygame.quit()
@@ -683,8 +767,9 @@ def mainGameLoop():
     topClear = False
     enemies = 13
     #Bullet Sprites
-    bulletColorEnemy=pygame.transform.scale(pygame.image.load("bulletColorEnemy.jpg"),(5,10))
-    bulletColorPlayer=pygame.transform.scale(pygame.image.load("Finger.png"),(20,30))
+    bulletColorEnemy=pygame.transform.scale(pygame.image.load("toast.png"),(30,45))
+    bulletColorTodd=pygame.transform.scale(pygame.image.load("Finger.png"),(20,30))
+    bulletColorAj=pygame.transform.scale(pygame.image.load("Fries.png"),(20,30))
     bulletColorCannon=pygame.transform.scale(pygame.image.load("SpicyFinger.png"),(20,30))
     bulletColorSuper=pygame.transform.scale(pygame.image.load("Finger.png"),(50,50))
     #Background Sprites
@@ -731,11 +816,13 @@ def mainGameLoop():
     levelCreator(CanesBack,level,Border,ZaxbyDef)
     #Player Sprites and creation
     ToddPng = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(50,50))
+    ToddShield = pygame.transform.scale(pygame.image.load("ToddShield.png"),(50,50))
     AjPng = pygame.transform.scale(pygame.image.load("AJPNG.png"),(50,50))
+    AjShield = pygame.transform.scale(pygame.image.load("AJShield.png"),(50,50))
     hp = pygame.transform.scale(pygame.image.load("Cane Heart.png"),(30,30))
-    Todd = Player(ToddPng,xLength=50,yLength=50,xPos=200,yPos=500,bulletSprite=bulletColorPlayer,cannonSprite=bulletColorCannon,superBreaker=bulletColorSuper)
+    Todd = Player(ToddPng, ToddShield, xLength=50,yLength=50,xPos=200,yPos=400,bulletSprite=bulletColorTodd,cannonSprite=bulletColorCannon,superBreaker=bulletColorSuper)
     if(Multiplayer):
-        Aj = Player(AjPng,xLength=50,yLength=50,xPos=600,yPos=500, healthLocation=500,bulletSprite=bulletColorPlayer,cannonSprite=bulletColorCannon,superBreaker=bulletColorSuper)
+        Aj = Player(AjPng, AjShield, xLength=50,yLength=50,xPos=600,yPos=400, healthLocation=500,bulletSprite=bulletColorAj,cannonSprite=bulletColorCannon,superBreaker=bulletColorSuper)
     
 
 
@@ -770,7 +857,70 @@ def mainGameLoop():
                 elif(level ==7):
                     addEnemy(level,ChickDef,ChickFast,ChickShoot,ChickLarge,bulletColorEnemy)
                 enemies-=1
+
+        # for i in range(len(inputs)):
+            
+        #     if(GPIO.input(inputs[i])):
+        #         if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
+        #             pygame.quit()
+        #             gameEnd = True
+        #             os._exit(1)
+        #         #Todd's 4 directional movement engaged
+        #         if(Todd.alive):
+        #             if (GPIO.input(inputs[2])):
+        #                 Todd.movement("up",True)
+        #             else:
+        #                 Todd.movement("up",False)
+        #             if (GPIO.input(inputs[4])):
+        #                 Todd.movement("left",True)
+        #             else:
+        #                 Todd.movement("left",False)
+        #             if (GPIO.input(inputs[3])):
+        #                 Todd.movement("down",True)
+        #             else:
+        #                 Todd.movement("down",False)
+        #             if (GPIO.input(inputs[5])):
+        #                 Todd.movement("right",True)
+        #             else:
+        #                 Todd.movement("right",False)
+        #         #AJ's 4 directional movement engaged
+        #         if(Multiplayer):
+        #             if(Aj.alive):
+        #                 if (GPIO.input(inputs[10])):
+        #                     Aj.movement("up",True)
+        #                 else:
+        #                     Aj.movement("up",False)
+        #                 if (GPIO.input(inputs[9])):
+        #                     Aj.movement("left",True)
+        #                 else:
+        #                     Aj.movement("left",False)
+        #                 if (GPIO.input(inputs[11])):
+        #                     Aj.movement("down",True)
+        #                 else:
+        #                     Aj.movement("down",False)
+        #                 if (GPIO.input(inputs[8])):
+        #                     Aj.movement("right",True)
+        #                 else:
+        #                     Aj.movement("right",False)
                 
+        #         #Todd and AJ's firing (space and enter respectively)
+        #         if(Todd.alive):
+        #             if (GPIO.input(inputs[7])):
+        #                 if(Todd.bulletCooldown == 0):
+        #                     Todd.shoot()
+        #             if(Todd.specialCooldown == 0):
+        #                 if (GPIO.input(inputs[6])):
+        #                     Todd.special()
+        #         if(Multiplayer):
+        #             if(Aj.alive):
+        #                 if (GPIO.input(inputs[12])):
+        #                     if(Aj.bulletCooldown == 0):
+        #                         Aj.shoot()
+        #                 if(Aj.specialCooldown == 0):
+        #                     if(GPIO.input(inputs[13])):
+        #                         Aj.special()   
+        # 
+        # for keyboard inputs     
         for event in pygame.event.get():
             if (event.type == pygame.QUIT):
                 pygame.quit()
@@ -847,18 +997,8 @@ def mainGameLoop():
             bullet.hitDetect()
         for enemy in enemyList:
             enemy.autoMove()
-        for player in playerList:
-            if(player.invincibility>0):
-                player.tickdown()
-        for player in playerList:
-            if(player.specialCooldown):
-                player.specialtickdown()
         for enemy in shootList:
             shootEnemy.fire(enemy)
-        for player in playerList:
-            player.hitDetect()
-        for player in playerList:
-            player.minigunShoot()
         if enemyList == []:
             for bullet in range(len(bulletList)):
                 bulletList[0].remove()
@@ -881,7 +1021,17 @@ def mainGameLoop():
                 levelCreator(CanesBack,level,Border,KFCDef)
             if(level==7):
                 levelCreator(CanesBack,level,Border,ChickDef)
-            
+        for player in playerList:
+            if(player.specialCooldown):
+                player.specialtickdown()
+            if(player.invincibility>0):
+                player.tickdown()
+            if (player.invincibility>0):
+                player.image=player.invimage
+            else:
+                player.image=player.normimage
+            player.hitDetect()
+            player.minigunShoot()
             
         for entity in entityDisplayList:
             gameDisplay.blit(entity.image,(entity.xPos,entity.yPos))
@@ -920,7 +1070,5 @@ global medText
 medText = pygame.font.SysFont('Arial MS', 50)
 global tinyText
 tinyText = pygame.font.SysFont('Arial MS', 25)
-
-
 
 titleScreen()
