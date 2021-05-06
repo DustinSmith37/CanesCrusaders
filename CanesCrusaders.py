@@ -685,7 +685,7 @@ def mainGameLoop():
     #Bullet Sprites
     bulletColorEnemy=pygame.transform.scale(pygame.image.load("bulletColorEnemy.jpg"),(5,10))
     bulletColorPlayer=pygame.transform.scale(pygame.image.load("Finger.png"),(20,30))
-    bulletColorCannon=pygame.transform.scale(pygame.image.load("Finger.png"),(20,30))
+    bulletColorCannon=pygame.transform.scale(pygame.image.load("SpicyFinger.png"),(20,30))
     bulletColorSuper=pygame.transform.scale(pygame.image.load("Finger.png"),(50,50))
     #Background Sprites
     CanesBack = pygame.transform.scale(pygame.image.load("CanesBack.jpg"),(WIDTH,BOTTOMBORDER-TOPBORDER))
