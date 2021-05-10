@@ -89,13 +89,6 @@ class Player(Entity):
         self.upgrades = {"doubleShoot":False,"doubleDamage":False,"doubleDamage2":False,"fastMove1":False,"fastMove2":False}
         self.specialActive = "shotgun"
         self.specialBought = {"shotgun":True,"laser":False,"minigun":False,"cannon":False,"superbreaker":False,"shield":False}
-        #list of specials
-        #shotgun: 3/6 shots based on upgrade
-        #laser: continous beam, gets wider with double shot
-        #minigun: lots of shots
-        #cannon: aoe explosion
-        #superbreaker: fires all the way to the top dealing damage as it goes
-        #shield: I frames on demand
     def shoot(self):
         for i in range(0,self.bulletnumber):
             if(self.upgrades["doubleShoot"]):
@@ -463,7 +456,7 @@ def titleScreen():
     global points
     points = 0
     background = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,HEIGHT))
-    guide = pygame.transform.scale(pygame.image.load("CanesBack.jpg"),(WIDTH-200,HEIGHT-200))
+    guide2 = pygame.transform.scale(pygame.image.load("GUIDE.png"),(WIDTH-200,HEIGHT-100))
     toddTitle = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(200,200))
     ajTitle = pygame.transform.scale(pygame.image.load("AJPNG.png"),(200,200))
     coolCane = pygame.transform.flip(pygame.image.load("CoolCanePNG.png"),1,0)
@@ -476,39 +469,42 @@ def titleScreen():
         #             pygame.quit()
         #             gameEnd = True
         #             os._exit(1)
-        #         if ((GPIO.input(inputs[7]) or GPIO.input(inputs[12])) and (stage == "guide")):
+        #         if ((GPIO.input(inputs[7]) or GPIO.input(inputs[12])) and (stage == "guide2")):
         #             if (Multiplayer):
-        #                 stage = "inform2"
+        #                 stage = "meet2"
         #             else:
-        #                 stage = "inform1"
-        #         if ((GPIO.input(inputs[6]) or GPIO.input(inputs[13]))and(stage == "inform1" or stage == "inform2")):
+        #                 stage = "meet1"
+        #         if ((GPIO.input(inputs[6]) or GPIO.input(inputs[13]))and(stage == "meet1" or stage == "meet2")):
         #             gameStart = True
         #         if(GPIO.input(inputs[0])):
-        #             stage = "guide"
+        #             stage = "guide1"
         #             Multiplayer = False
         #         elif(GPIO.input(inputs[1])):
-        #             stage = "guide"
+        #             stage = "guide1"
         #             Multiplayer = True
+        #         elif((GPIO.input(inputs[7]) or GPIO.input(inputs[12])) and (stage == "guide1")):
+        #             stage = "guide2"
         for event in pygame.event.get():
             if (event.type == pygame.QUIT):
                 pygame.quit()
                 gameStart = True
                 os._exit(1)
             elif event.type == pygame.KEYDOWN:
-                if ((event.key == pygame.K_RETURN or event.key == pygame.K_SPACE) and (stage == "guide")):
+                if ((event.key == pygame.K_RETURN or event.key == pygame.K_SPACE) and (stage == "guide2")):
                     if (Multiplayer):
-                        stage = "inform2"
+                        stage = "meet2"
                     else:
-                        stage = "inform1"
-                if ((event.key == pygame.K_e or event.key == pygame.K_BACKSLASH)and(stage == "inform1" or stage == "inform2")):
+                        stage = "meet1"
+                if ((event.key == pygame.K_e or event.key == pygame.K_BACKSLASH)and(stage == "meet1" or stage == "meet2")):
                     gameStart = True
                 if (event.key == pygame.K_1):
-                    stage = "guide"
+                    stage = "guide1"
                     Multiplayer = False
                 elif (event.key == pygame.K_2):
-                    stage = "guide"
+                    stage = "guide1"
                     Multiplayer = True
-                #elif event.key
+                elif (event.key == pygame.K_RETURN or event.key == pygame.K_SPACE) and (stage =="guide1"):
+                    stage = "guide2"
         gameDisplay.blit(background,(0,0))
         if (stage == "start"):
             line1 = bigText.render("CANES CRUSADERS",True,(255,255,255))
@@ -520,7 +516,7 @@ def titleScreen():
             line2 = medText.render("SELECT NUMBER OF PLAYERS TO CONTINUE",True,(255,0,0))
             gameDisplay.blit(line2,(15,210))
 
-        if (stage == "inform2"):
+        if (stage == "meet2"):
             line1 = bigText.render("MEET YOUR HEROES",True,(255,255,255))
             gameDisplay.blit(line1,(90,50))
             line2 = medText.render("TODD GRAVES",True,(255,255,255))
@@ -535,32 +531,196 @@ def titleScreen():
             gameDisplay.blit(line6,(550,350))
             line7 = medText.render("MANKIND",True,(255,255,255))
             gameDisplay.blit(line7,(110,350))
-            line8 = medText.render("PRESS ANY BUTTON TO CONTINUE",True,(255,0,0))
-            gameDisplay.blit(line8,(100,120))
+            line8 = medText.render("PRESS SPECIAL TO CONTINUE",True,(255,0,0))
+            gameDisplay.blit(line8,(130,120))
             gameDisplay.blit(toddTitle,(100,400))
             gameDisplay.blit(ajTitle,(500,400))
         
-        if (stage == "inform1"):
+        if (stage == "meet1"):
             line1 = bigText.render("MEET YOUR HERO",True,(255,255,255))
             gameDisplay.blit(line1,(120,50))
             line2 = medText.render("TODD GRAVES",True,(255,255,255))
             gameDisplay.blit(line2,(280,200))
             line3 = medText.render("GOD KING OF",True,(255,255,255))
             gameDisplay.blit(line3,(300,250))
-            line6 = medText.render("PRESS ANY BUTTON TO CONTINUE",True,(255,0,0))
-            gameDisplay.blit(line6,(100,120))
+            line6 = medText.render("PRESS SPECIAL TO CONTINUE",True,(255,0,0))
+            gameDisplay.blit(line6,(130,120))
             line7 = medText.render("MANKIND",True,(255,255,255))
             gameDisplay.blit(line7,(310,300))
             gameDisplay.blit(toddTitle,(300,350))
-        
-        if (stage == "guide"):
-            line1 = bigText.render("HOW TO PLAY",True,(255,255,255))
+        if (stage == "guide1"):
+            line1=bigText.render("HOW TO PLAY",True,(255,255,255))
+            line2=medText.render("THE RED BUTTON IS SHOOT/FIRE",True,(255,0,0))
+            line3=medText.render("THE BLACK BUTTON IS SPECIAL",True,(255,255,255))
+            line4=medText.render("THE WHITE BUTTONS ARE PLAYER SELECT",True,(255,255,255))
+            line5=medText.render("PRESSING BOTH WHITE CLOSES THE GAME",True,(255,255,255))
+            line6=medText.render("PRESS FIRE TO CONTINUE",True,(255,0,0))
             gameDisplay.blit(line1,(120,50))
-            gameDisplay.blit(guide,(100,100))
+            gameDisplay.blit(line2,(120,150))
+            gameDisplay.blit(line3,(120,200))
+            gameDisplay.blit(line4,(30,250))
+            gameDisplay.blit(line5,(30,300))
+            gameDisplay.blit(line6,(150,350))
+
+
+        if (stage == "guide2"):
+            line1 = bigText.render("HOW TO PLAY CONT",True,(255,255,255))
+            line2 = tinyText.render("PRESS FIRE TO CONTINUE",True,(255,0,0))
+            gameDisplay.blit(line1,(100,50))
+            gameDisplay.blit(guide2,(100,100))
+            gameDisplay.blit(line2,(450,475))
             
         pygame.display.update()
         fps.tick(30)
     mainGameLoop()
+def cutscene(scene):
+    sceneStage = 1
+    Todd = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(200,200))
+    Aj = pygame.transform.scale(pygame.image.load("AJPNG.png"),(200,200))
+    SpaceBack = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,BOTTOMBORDER-TOPBORDER))
+    shopFront = pygame.transform.scale(pygame.image.load("StoreBack.png"),(WIDTH,BOTTOMBORDER-TOPBORDER))
+    CoolCane = pygame.transform.scale(pygame.image.load("CoolCanePNG.png"),(200,200))
+    TextBack = pygame.transform.scale(pygame.image.load("WhiteBorder.jpeg"),(WIDTH,100))
+    Border = pygame.transform.scale(pygame.image.load("black.png"),(WIDTH,50))
+    Inform = medText.render("PRESS PLAYER SELECT TO CONTINUE",True,(255,255,255))
+    BabyCane = pygame.transform.scale(pygame.image.load("BabyCane.png"),(200,200))
+    showtime = True
+    while showtime:
+        # for i in range(len(inputs)):
+        #     if(GPIO.input(inputs[i])):
+        #         if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
+        #             pygame.quit()
+        #             showtime = False
+        #             os._exit(1)
+        #         if (GPIO.input(inputs[0]) or GPIO.input(inputs[1])):
+        #             sceneStage +=1
+        for event in pygame.event.get():
+            if (event.type == pygame.QUIT):
+                pygame.quit()
+                showtime = False
+                os._exit(1)
+            if (event.type ==pygame.KEYDOWN):
+                if (event.key == pygame.K_ESCAPE):
+                    pygame.quit()
+                    showtime = False
+                    os._exit(1)
+                if (event.key == pygame.K_1 or event.key == pygame.K_2):
+                    sceneStage+=1
+        fps.tick(10)
+        gameDisplay.blit(Border,(0,0))
+        gameDisplay.blit(Border,(0,BOTTOMBORDER))
+        gameDisplay.blit(Inform,(60,15))
+        if (scene == "shop"):
+            gameDisplay.blit(shopFront,(0,TOPBORDER))
+            if (sceneStage == 1):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                line1=medText.render("Todd: What is this place?",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            if (sceneStage ==2):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(CoolCane,(650,200))
+                line1=medText.render("???: Oh, Todd, great to see you!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            if (sceneStage ==3):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(CoolCane,(650,200))
+                line1=medText.render("RC1: I'm Raising Cane the first,",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            if (sceneStage ==4):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(CoolCane,(650,200))
+                line1=medText.render("RC1: and welcome to my shop!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            if (sceneStage ==5):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(CoolCane,(650,200))
+                line1=medText.render("RC1: I'm here to help you in your journey!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            if (sceneStage ==6):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(CoolCane,(650,200))
+                line1=medText.render("Todd: So, uh, why am I fighting these guys?",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            if (sceneStage ==7):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(CoolCane,(650,200))
+                line1=medText.render("RC1: They are the evil chicken lords!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            if (sceneStage ==8):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(CoolCane,(650,200))
+                line1=medText.render("RC1: They despise your awesome chicken!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            if (sceneStage ==9):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(CoolCane,(650,200))
+                line1=medText.render("RC1: The spirits of the Canes have united,",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            if (sceneStage ==10):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(CoolCane,(650,200))
+                line1=medText.render("RC1: in order to help you defeat them!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            if (sceneStage ==11):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(CoolCane,(650,200))
+                line1=medText.render("Todd: Dope! Lemme see what you got!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            if (sceneStage ==12):
+                showtime=False
+        elif (scene == "levelEnd"):
+            gameDisplay.blit(SpaceBack,(0,TOPBORDER))
+            if (sceneStage == 1):
+                line1=bigText.render("LEVEL COMPLETE",True,(255,255,255))
+                gameDisplay.blit(line1,(125,TOPBORDER+100))
+            elif (sceneStage ==2):
+                showtime = False
+        elif (scene == "lose"):
+            gameDisplay.blit(SpaceBack,(0,TOPBORDER))
+            if (sceneStage == 1):
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(BabyCane,(300,200))
+                line1=medText.render("RC3: You have been defeated, Todd.",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage == 2):
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(BabyCane,(300,200))
+                line1=medText.render("RC3: I cannot resurrect you, not again.",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage == 3):
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(BabyCane,(300,200))
+                line1=medText.render("RC3: There is, however, another way.",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage == 4):
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(BabyCane,(300,200))
+                line1=medText.render("RC3: A new timeline. One not yet doomed.",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage == 5):
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(BabyCane,(300,200))
+                line1=medText.render("RC3: I will use all my strength to send you.",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage == 6):
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(BabyCane,(300,200))
+                line1=medText.render("RC3: Please Todd, you are our only hope.",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==7):
+                showtime = False
+        pygame.display.flip()
 def shop():
     ToddShop = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(50,50))
     AjShop = pygame.transform.scale(pygame.image.load("AJPNG.png"),(50,50))
@@ -588,6 +748,8 @@ def shop():
     global points
     points = points
     status = "What would you like to buy?"
+    if (level == 1):
+        cutscene("shop")
 
     while(shopping):
         gameDisplay.blit(shopFront,(0,TOPBORDER))
@@ -727,11 +889,13 @@ def lose():
     background = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,HEIGHT))
     gameOver = bigText.render("Game Over",True,(255,255,255))
     score = medText.render("Your score: {}".format(points),True,(255,255,255))
+    inform = medText.render("Press fire to continue",True,(255,0,0))
     action = False
     while(not action):
         gameDisplay.blit(background,(0,0))
         gameDisplay.blit(gameOver,(200,200))
         gameDisplay.blit(score,(260,300))
+        gameDisplay.blit(inform,(200,350))
 
         # for i in range(len(inputs)):
         #     if(GPIO.input(inputs[i])):
@@ -1002,6 +1166,7 @@ def mainGameLoop():
         if enemyList == []:
             for bullet in range(len(bulletList)):
                 bulletList[0].remove()
+            cutscene("levelEnd")
             shop()
             level += 1
             difficulty += 1
@@ -1042,6 +1207,7 @@ def mainGameLoop():
                 collectiveHealth += 1
                 gameDisplay.blit(hp,(player.healthLocation+i*50,BOTTOMBORDER+10))
         if collectiveHealth <= 0:
+            cutscene("lose")
             lose()
         if instakill:
             for enemy in enemyList:
