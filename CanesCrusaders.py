@@ -2,6 +2,7 @@
 global controls
 controls = "keyboard" #either "keyboard" or "console" for running on pi
 fullscreen = False #if true, pygame will fullscreen, otherwise 800x500
+#console only features relating to the joysticks and buttons
 if (controls == "console"):
     import RPi.GPIO as GPIO
     player1 =[18,19,20,21]
@@ -27,7 +28,7 @@ pygame.font.init()
 pygame.mixer.init()
 #set a variable called FPS that is just the clock function from time
 fps = pygame.time.Clock()
-#display the pygame window, set it to be 800 by 600 and be fullscreen (when not debugging)
+#display the pygame window, set it to be 800 by 500 and be fullscreen (when not debugging)
 WIDTH = 800
 HEIGHT = 500
 TOPBORDER = 50
@@ -89,24 +90,30 @@ class Entity():
 class Player(Entity):
     def __init__(self,normimage,invimage,bulletSprite,cannonSprite,superBreaker,xPos=0,yPos=TOPBORDER,xMove=7,yMove=5,xLength=50,yLength=50,health=3,healthLocation=5):
         Entity.__init__(self,normimage,xPos,yPos,xMove,yMove,xLength,yLength)
+        #necessary sprites for player function
         self.bulletSprite=bulletSprite
         self.cannonSprite=cannonSprite
         self.superBreaker=superBreaker
         self.normimage=normimage
         self.invimage = invimage
         self.health = health
+        #various timers for abilities as well as invincibility
         self.invincibility = 0
         self.specialCooldown = 0
         self.bulletCooldown = 0
-        self.bulletnumber = 1
         self.miniFire = 0
+        #dictionary of all 4 directions the player can travel in, all indepedent
         self.direction = {"up":False,"left":False,"down":False,"right":False}
+        #health and life related numbers/conditionals
         self.healthLocation = healthLocation
         playerList.append(self)
         self.alive = True
-        self.upgrades = {"doubleShoot":True,"doubleDamage":True,"doubleDamage2":True,"fastMove1":False,"fastMove2":False}
-        self.specialActive = "superbreaker"
+        #3 settings for upgrades, specials, and the active specials. Also has bullet number, which is multiplied via damage
+        self.bulletnumber = 1
+        self.upgrades = {"doubleShoot":False,"doubleDamage":False,"doubleDamage2":False,"fastMove1":False,"fastMove2":False}
+        self.specialActive = "shotgun"
         self.specialBought = {"shotgun":True,"laser":False,"minigun":False,"cannon":False,"superbreaker":False,"shield":False}
+    #how the player fires, depends on upgrads
     def shoot(self):
         self.bulletCooldown = 5
         for i in range(0,self.bulletnumber):
@@ -118,6 +125,7 @@ class Player(Entity):
         
 
     def special(self):
+        #shotgun special, fires a group of projectiles
         if(self.specialActive=="shotgun"):
             for i in range(0,self.bulletnumber):
                 if(self.upgrades["doubleShoot"]):
@@ -132,6 +140,7 @@ class Player(Entity):
                     Bullet(image=self.bulletSprite,xPos=self.xPos,yPos=self.yPos)
                     Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength,yPos=self.yPos)
             self.specialCooldown = 60
+        #laser special, fires a beam of bullets
         elif(self.specialActive=="laser"):
             fired = 0
             for i in range(0,self.bulletnumber):
@@ -144,6 +153,7 @@ class Player(Entity):
                     for y in range(self.yPos,TOPBORDER,-10):
                         fired +=1
             self.specialCooldown = 60
+        #minigun special, fires many tiny fast rounds
         elif(self.specialActive=="minigun"):
             for i in range(0,self.bulletnumber):
                 if (self.upgrades["doubleShoot"]):
@@ -151,22 +161,26 @@ class Player(Entity):
                 else:
                     self.miniFire+10
             self.specialCooldown = 90
+        #cannon special, fires an aoe blast weapon
         elif(self.specialActive=="cannon"):
             CannonBullet(image=self.cannonSprite,radius=self.bulletnumber,xPos=self.xPos+self.xLength/2,yPos=self.yPos,yMove = 10)
             self.specialCooldown = 90
+        #superbreaker special, fires an unstoppable projectile of canes sauce
         elif(self.specialActive=="superbreaker"):
             SuperBullet(image=self.superBreaker,damage=self.bulletnumber,xPos=self.xPos,yPos=self.yPos-50,yMove = 5)
             self.specialCooldown = 150
+        #shield special, I frames on demand
         elif(self.specialActive=="shield"):
             self.invincibility = 60
             self.specialCooldown = 150 
-           
+    #function for firing the minigun over time
     def minigunShoot(self):
         if (self.specialActive=="minigun"):
             if (self.miniFire>0):
                 if (self.miniFire%2==0):
                     Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/2,yPos=self.yPos,yMove = 20)
                 self.miniFire-=1
+    #function for damaging the player and possibly killing them
     def damage(self):
         if(self.invincibility==0 and self.alive):
             self.health-=1
@@ -174,24 +188,27 @@ class Player(Entity):
         else:
             pass
         if(self.health==0 and self.alive):
-            playerList.remove(self)
-            entityDisplayList.remove(self)
+            self.remove()
             self.alive = False
+    #function for healing the player and possibly reviving them in multiplayer
     def heal(self):
         if (self.health==0):
             self.alive = True
+            entityDisplayList.append(self)
         self.health+=1
-
+    #decrements invincibility
     def tickdown(self):
         self.invincibility -=1
-
+    #decrements special timer
     def specialtickdown(self):
         self.specialCooldown -= 1
+    #decrements the bullet fire rate in console mode
     def bulletTickdown(self):
         self.bulletCooldown-=1
+    #sets the player movement dictionary to travel in a certain direction
     def movement(self,move,state):
         self.direction[move]=state
-    
+    #handles collision of the sprite of the player with an enemy
     def hitDetect(self):
         for enemy in enemyList:
             if (enemy.xPos+enemy.xLength>self.xPos and enemy.xPos<self.xPos):
@@ -199,16 +216,15 @@ class Player(Entity):
                     self.damage()
                     enemy.damage()
                     break
-
+    #if a player is printed, prints who they are
     def __str__(self):
         if(self == playerList[0]):
             return "Todd"
         elif(self == playerList[1]):
             return "AJ"
-
+    #removes a player from the display list but NOT the player list so they can come back
     def remove(self):
         try:
-            playerList.remove(self)
             entityDisplayList.remove(self)
         except:
             print("Delete Error, Ignoring")
@@ -218,10 +234,14 @@ class Player(Entity):
 class Enemy(Entity):
     def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=50,xLength=50,yLength=50,health=2,direction="right",boss=False):
         Entity.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength)
+        #simple vars, such as health, travel direction, and if they are a boss
         enemyList.append(self)
         self.health = health
         self.direction = direction
         self.boss = boss
+    #handles movement of enemies, with them sliding left and right
+    #and only going down on the sides of the screen, if they reach
+    #the bottom all players take damage
     def autoMove(self):
         if (self.direction == "left"):
             self.moveLeft()
@@ -236,30 +256,32 @@ class Enemy(Entity):
         if(self.yPos+self.yLength>=BOTTOMBORDER):
             self.remove()
             for player in playerList:
-                player.damage()
+                if (player.health >0):
+                    player.damage()
+    #damages and possibly kills the enemy
     def damage(self):
         self.health -=1
         if (self.health <= 0):
             self.remove()
-
+    #removes enemy from enemy list and display list
     def remove(self):
         try:
             enemyList.remove(self)
             entityDisplayList.remove(self)
         except:
             print("Delete Error, Ignoring")
-
+#a simple enemy, just faster
 class speedEnemy(Enemy):
     def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=10,yMove=50,xLength=50,yLength=50,health=2,direction="right"):
         Enemy.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength,health,direction)
  
-
+#an enemy that shoots bullets
 class shootEnemy(Enemy):
     def __init__(self,image,bulletSprite,xPos=0,yPos=TOPBORDER,xMove=5,yMove=50,xLength=50,yLength=50,health=2,direction="right",boss=False):
         Enemy.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength,health,direction,boss)
         shootList.append(self)
         self.bulletSprite=bulletSprite
-
+    #doesn't move down, but otherwise identical automove
     def autoMove(self):
         if (self.direction == "left"):
             self.moveLeft()
@@ -269,10 +291,13 @@ class shootEnemy(Enemy):
             self.direction = "right"
         elif (self.xPos == WIDTH-self.xLength):
             self.direction = "left"
+    #enemy will fire at random intervals
     def fire(self):
         shot = randint(0,30)
         if(shot==30):
             enemyBullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/2,yPos=self.yPos+self.yLength)
+    #removes enemy from one additional list than normal, the shoot List, which handles
+    #shooting enemies
     def remove(self):
         try:
             enemyList.remove(self)
@@ -280,16 +305,19 @@ class shootEnemy(Enemy):
             entityDisplayList.remove(self)
         except:
             print("Delete Error, Ignoring")
-
+#an enemy with slower speed and much more health and size
 class tankEnemy(Enemy):
     def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=1,xLength=100,yLength=100,health=10,direction="right"):
         Enemy.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength,health,direction)
+    #this enemy spawns at random and heads straight down
     def autoMove(self):
         self.moveDown()
         if(self.yPos+self.yLength>=BOTTOMBORDER):
             self.remove()
             for player in playerList:
-                player.damage()
+                if (player.health>0):
+                    player.damage()
+#the bosses are just reskinned shooting enemies that fire 2 bullets instead of one
 class Boss1(shootEnemy):
     def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=50,xLength=100,yLength=100,direction="right",boss=True):
         self.bulletSprite = pygame.transform.scale(pygame.image.load("toast.png"),(30,45))
@@ -323,10 +351,13 @@ class Bullet(Entity):
     def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=5,yLength=10):
         Entity.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength)
         bulletList.append(self)
+    #bullets move straight up
     def autoMove(self):
         self.yPos-=self.yMove
+    #hit detects vs all enemies on screen
     def hitDetect(self):
         global points
+        global score
         for enemy in enemyList:
             if (enemy.xPos+enemy.xLength>self.xPos and enemy.xPos<self.xPos):
                 if (enemy.yPos+enemy.yLength>self.yPos and enemy.yPos<self.yPos):
@@ -335,15 +366,18 @@ class Bullet(Entity):
                     points +=10
                     score += 10
                     break
+        #removed if it hits the top
         if (self.yPos<=TOPBORDER):
             self.remove()   
+
+    #removes a bullet
     def remove(self):
         try:
             bulletList.remove(self)
             entityDisplayList.remove(self)
         except:
             print("Delete Error, Ignoring")
-#moves entities into level creator or main game loop
+#enemy bullet class, basically identical to player bullet, just hits players and moves down
 class enemyBullet(Entity):
     def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=-5,xLength=5,yLength=10):
         Entity.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength)
@@ -365,6 +399,7 @@ class enemyBullet(Entity):
             entityDisplayList.remove(self)
         except:
             print("Delete Error, Ignoring")
+#cannon bullet, does an AOE hit detection via a new stat, radius
 class CannonBullet(Bullet):
     def __init__(self,image,radius = 1,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=5,yLength=10):
         Bullet.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength)
@@ -382,6 +417,7 @@ class CannonBullet(Bullet):
                     points +=10
                     score += 10
                     break
+        #once it impacts and dies, it damages all nearby enemies
         if (dead):
             for enemy in enemyList:
                 if (enemy.xPos+enemy.xLength>self.xPos-self.radius and enemy.xPos<self.xPos+self.radius):
@@ -393,6 +429,7 @@ class CannonBullet(Bullet):
                                 score += 10
         elif (self.yPos<=TOPBORDER):
             self.remove()
+#superbreaker bullet class, doesnt get deleted when it touchs an enemy
 class SuperBullet(Bullet):
     def __init__(self,image,damage,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=50,yLength=50):
         Bullet.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength)
@@ -410,7 +447,7 @@ class SuperBullet(Bullet):
                             score += 10
         if (self.yPos<=TOPBORDER):
             self.remove()
-
+#function purely for handling player movement based on their dictionaries
 def playerMove(player):
     if (player.direction["up"]==True):
         player.moveUp()
@@ -420,15 +457,16 @@ def playerMove(player):
         player.moveDown()
     if (player.direction["right"]==True):
         player.moveRight()
-
+#creates the next level's starter enemies based on the level, also can spawn boss, and sets the music
 def levelCreator(back,level,border,DefEnemy):
+    #music setting
     if (level<8):
         jukebox("combat1.mp3")
     elif (level == 8):
         jukebox("boss1.mp3")
     elif (level == 9):
         jukebox("boss2.mp3")
-
+    #if it's the first level, sets up the background,otherwise changes the old one
     if (level == 1):
         Entity(back,xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
         Entity(border,yPos=0,xLength=WIDTH,yLength=TOPBORDER)
@@ -443,7 +481,7 @@ def levelCreator(back,level,border,DefEnemy):
     elif (level == 9):
         Boss2(DefEnemy,xPos=250)
 
-
+#adds a random enemy of that type
 def addEnemy(level,Def,Fast,Shooter,Large,bulletColorEnemy):
     chance = randint(0,30)
     if(chance in [14,15,16,17]):
@@ -456,15 +494,16 @@ def addEnemy(level,Def,Fast,Shooter,Large,bulletColorEnemy):
         Enemy(Def,xPos=0,health=level+1)
     else:
         Enemy(Def, xPos=0,health=level+1)
-
+#purchase control for the shop, uses a list/dictionary setup
 def purchase(buyer,buyerX,buyerY):
     global points
     global score
-    buyGrid=[{"doubleShoot":250,"doubleDamage":500,"doubleDamage2":1000,"fastMove1":2000,"fastMove2":500,"heal":100},{"shotgun":0, "laser":250, "cannon":250, "superbreaker":250, "minigun":250, "shield":250}]
+    buyGrid=[{"doubleShoot":1000,"doubleDamage":1000,"doubleDamage2":2000,"fastMove1":2000,"fastMove2":2000,"heal":500},{"shotgun":0, "laser":1000, "cannon":1000, "superbreaker":3000, "minigun":2000, "shield":2000}]
     upgrade = None
     special = None
     index = 0
     status = "What would you like to buy?"
+    #long series of logic to control if a player can buy something based on points and if they already have it
     if buyerY == 0:
         for key in buyGrid[0].keys():
             if index == buyerX:
@@ -536,9 +575,11 @@ def purchase(buyer,buyerX,buyerY):
         else:
             status = "You do not have enough points!"
     return status
+#short and sweet, plays a mp3 file
 def jukebox(song,start=0.0):
     pygame.mixer.music.load(song)
     pygame.mixer.music.play(-1, start)
+#the title screen was the first "cutscene", and as such is a seperate function
 def titleScreen():
     #assets for title screen
     global Multiplayer
@@ -555,6 +596,7 @@ def titleScreen():
     stage = "start"
     inputCooldown = 0
     jukebox("menu1.mp3")
+    #theres a game loop here for the player to make their way through the tutorial
     while(not gameStart):
         if (controls == "console"):
             for i in range(len(inputs)):
@@ -671,7 +713,10 @@ def titleScreen():
             
         pygame.display.update()
         fps.tick(30)
+    #starts the main game
     mainGameLoop()
+#cutscene function, takes up a HUGE amount of lines of code but in essence is just
+#a very big white board for us to write/draw lines of text and pictures onto.
 def cutscene(scene):
     sceneStage = 1
     Todd = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(200,200))
@@ -695,6 +740,7 @@ def cutscene(scene):
         jukebox("death1.mp3")
     elif (scene == "levelEnd"):
         jukebox("bossIntro.mp3")
+    #a similar approach to the title for controlling, uses a minigame loop.
     while showtime:
         if (controls == "console"):
             for i in range(len(inputs)):
@@ -1103,6 +1149,7 @@ def cutscene(scene):
 
 
         pygame.display.flip()
+#The shop function, displays all visual portions and controls Todd and AJ's movement
 def shop():
     ToddShop = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(50,50))
     AjShop = pygame.transform.scale(pygame.image.load("AJPNG.png"),(50,50))
@@ -1133,7 +1180,7 @@ def shop():
     ToddBuyCooldown = 0
     AjBuyCooldown = 0
     noSkip = 30
-    
+    #the shop intro cutscene
     if (level == 1):
         cutscene("shop")
     songSelect = randint(1,11)
@@ -1266,6 +1313,8 @@ def shop():
         gameDisplay.blit(ToddShop,(ToddPos["xPos"]*125+75,ToddPos["yPos"]*100+300))
         if Multiplayer:
             gameDisplay.blit(AjShop,(AjPos["xPos"]*125+130,AjPos["yPos"]*100+300))
+        #there are cooldowns in place to prevent premature exitting of the shop
+        #and double buying
         if (ToddBuyCooldown>0):
             ToddBuyCooldown-=1
         if (AjBuyCooldown>0):
@@ -1283,6 +1332,7 @@ def shop():
                 gameDisplay.blit(hp,(player.healthLocation,BOTTOMBORDER+10))
                 gameDisplay.blit(lives,(player.healthLocation+30,BOTTOMBORDER+10))
         pygame.display.flip()
+#the lose function, clears all lists and displays their final score then boots them to the title
 def lose():
     global points
     global score
@@ -1341,6 +1391,7 @@ def lose():
         if (inputCooldown>0):
             inputCooldown-=1
     titleScreen()
+#the win function, literally a copy and paste of the lose function with a more positive message :)
 def win():
     global points
     global score
@@ -1398,13 +1449,16 @@ def win():
         fps.tick(15)
         if (inputCooldown>0):
             inputCooldown-=1
-    titleScreen()      
+    titleScreen()   
+#THE BIG MAMA   
 def mainGameLoop():
+    #important assets and numbers
     global points
     global score
     global difficulty
     gameEnd=False
     topClear = False
+    #enemies for the first wave
     enemies = 13
     #Bullet Sprites
     bulletColorEnemy=pygame.transform.scale(pygame.image.load("toast.png"),(30,45))
@@ -1458,7 +1512,7 @@ def mainGameLoop():
     global level
     if (level == 1):
         levelCreator(CanesBack,level,Border,ZaxbyDef)
-    elif (level == 8):
+    elif (level == 8): #THIS IS FOR DEBUGGING THE BOSS, OTHERWISE USELESS
         Entity(SpaceBack,xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
         Entity(Border,yPos=0,xLength=WIDTH,yLength=TOPBORDER)
         Entity(Border,yPos=BOTTOMBORDER,yLength=HEIGHT-BOTTOMBORDER,xLength=WIDTH)
@@ -1473,9 +1527,10 @@ def mainGameLoop():
     if(Multiplayer):
         Aj = Player(AjPng, AjShield, xLength=50,yLength=50,xPos=600,yPos=400, healthLocation=500,bulletSprite=bulletColorAj,cannonSprite=bulletColorCannon,superBreaker=bulletColorSuper)
 
-
+    #displays all initial sprites for the first level.
     for i in range(len(entityDisplayList)):
         gameDisplay.blit(entityDisplayList[i].image,(entityDisplayList[i].xPos,entityDisplayList[i].yPos))
+    #The main game loop.
     while not(gameEnd):
         for enemy in enemyList:
             if(enemy.yPos<=TOPBORDER+enemy.yLength and enemy.yPos>= TOPBORDER and enemy.xPos<=enemy.xLength+10 and enemy.xPos>=0 ):
@@ -1484,7 +1539,7 @@ def mainGameLoop():
                 topClear = True
         if(enemyList==[]):
             topClear = True
-            
+        #if the top left corner of the screen is clear of enemies, spawn level approriate ones
         if(enemies>0):
             if(topClear):
                 if(level ==1):
@@ -1502,6 +1557,8 @@ def mainGameLoop():
                 elif(level ==7):
                     addEnemy(level,ChickDef,ChickFast,ChickShoot,ChickLarge,bulletColorEnemy)
                 enemies-=1
+        #the most important if/elif set in the code, user input for the main game loop,
+        #uses GPIO on the pi and the keyboard on PC
         if (controls == "console"):
             for i in range(len(inputs)):
                 
@@ -1634,17 +1691,24 @@ def mainGameLoop():
                             Aj.movement("down",False)
                         if event.key == pygame.K_RIGHT:
                             Aj.movement("right",False)
+        #moves players
         playerMove(Todd)
         if(Multiplayer):
             playerMove(Aj)
+        #limits the FPS of the game to 30
         fps.tick(30)
+        #moves all bullets and does hit detection
         for bullet in bulletList:
             bullet.autoMove()
             bullet.hitDetect()
+        #moves all enemies
         for enemy in enemyList:
             enemy.autoMove()
+        #fires shooting enemies
         for enemy in shootList:
             enemy.fire()
+        #if no enemies present at all, ends the main loop and starts the shop loops/
+        #gives victory screen
         if enemyList == []:
             for bullet in range(len(bulletList)):
                 bulletList[0].remove()
@@ -1660,6 +1724,7 @@ def mainGameLoop():
                 cutscene("preboss")
             elif (level ==8):
                 cutscene("midboss2")
+            #increments the level, difficulty, and sets # of enemies for the next level
             level += 1
             difficulty += 1
             enemies = difficulty * 13
@@ -1682,7 +1747,7 @@ def mainGameLoop():
                 levelCreator(SpaceBack,level,Border,BossHead)
             elif(level==9):
                 levelCreator(SpaceBack,level,Border,BigBoss)
-            
+        #player timer decrements as well as updating their sprites
         for player in playerList:
             if(player.specialCooldown):
                 player.specialtickdown()
@@ -1696,10 +1761,10 @@ def mainGameLoop():
                 player.image=player.normimage
             player.hitDetect()
             player.minigunShoot()
-            
+        #displays ALL entities
         for entity in entityDisplayList:
             gameDisplay.blit(entity.image,(entity.xPos,entity.yPos))
-            
+        #if the players are dead, causes a lose, otherwise displays health for each
         collectiveHealth = 0
         for player in playerList:
             collectiveHealth += player.health
@@ -1713,6 +1778,8 @@ def mainGameLoop():
         if collectiveHealth <= 0:
             cutscene("lose")
             lose()
+
+        #instakill function, is a bit buggy with the boss
         if instakill:
             for enemy in enemyList:
                 if not(enemy.boss):
@@ -1729,7 +1796,7 @@ Multiplayer = True
 global difficulty 
 difficulty= 3
 global level 
-level = 8
+level = 1
 global points 
 points = 0
 global score
@@ -1743,4 +1810,5 @@ global medText
 medText = pygame.font.SysFont('Arial MS', 50)
 global tinyText
 tinyText = pygame.font.SysFont('Arial MS', 25)
+#starts the chain of all game windows by calling the title screen
 titleScreen()
