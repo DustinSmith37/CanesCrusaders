@@ -1,7 +1,24 @@
+#SETTINGS VARIABLES, CONTROLS VERY IMPORTANT ASPECTS OF THE GAME
+global controls
+controls = "keyboard" #either "keyboard" or "console" for running on pi
+fullscreen = False #if true, pygame will fullscreen, otherwise 800x500
+if (controls == "console"):
+    import RPi.GPIO as GPIO
+    player1 =[18,19,20,21]
+    p1butts = [23,22]
+    player2 = [17,16,13,12]
+    p2butts = [6,5]
+    playersel = [24,25]
+
+    inputs = [24,25,18,19,20,21,22,23,12,13,17,16,6,5]
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(p1butts, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+    GPIO.setup(p2butts, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+    GPIO.setup(playersel, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+    GPIO.setup(player1, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+    GPIO.setup(player2, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
 #import the needed modules, pygame is obvious, time for tick speed,
 #and os for leaving the game without causing errors
-#uncomment when on pi
-#import RPi.GPIO as GPIO
 import pygame, time, os
 from random import randint
 #initialize pygame, its font's and it's music player
@@ -15,7 +32,10 @@ WIDTH = 800
 HEIGHT = 500
 TOPBORDER = 50
 BOTTOMBORDER = HEIGHT-50
-gameDisplay = pygame.display.set_mode((WIDTH,HEIGHT),)#pygame.FULLSCREEN)
+if fullscreen:
+    gameDisplay = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
+else:
+    gameDisplay = pygame.display.set_mode((WIDTH,HEIGHT))
 
 #set its name to be Canes Crusaders
 pygame.display.set_caption('Canes Crusaders')
@@ -26,13 +46,7 @@ enemyList=[]
 bulletList=[]
 shootList=[]
 
-player1 =[18,19,20,21]
-p1butts = [23,22]
-player2 = [17,16,13,12]
-p2butts = [6,5]
-playersel = [24,25]
 
-inputs = [24,25,18,19,20,21,22,23,12,13,17,16,6,5]
 
 #entity class
 class Entity():
@@ -80,6 +94,7 @@ class Player(Entity):
         self.health = health
         self.invincibility = 0
         self.specialCooldown = 0
+        self.bulletCooldown = 0
         self.bulletnumber = 1
         self.miniFire = 0
         self.direction = {"up":False,"left":False,"down":False,"right":False}
@@ -90,6 +105,7 @@ class Player(Entity):
         self.specialActive = "shotgun"
         self.specialBought = {"shotgun":True,"laser":False,"minigun":False,"cannon":False,"superbreaker":False,"shield":False}
     def shoot(self):
+        self.bulletCooldown = 5
         for i in range(0,self.bulletnumber):
             if(self.upgrades["doubleShoot"]):
                 Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-35,yPos=self.yPos)
@@ -114,14 +130,18 @@ class Player(Entity):
                     Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength,yPos=self.yPos)
             self.specialCooldown = 60
         elif(self.specialActive=="laser"):
+            fired = 0
             for i in range(0,self.bulletnumber):
                 if (self.upgrades["doubleShoot"]):
                     for y in range(self.yPos,TOPBORDER,-10):
-                        Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-35,yPos=self.yPos,yMove = 20)
-                        Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-15,yPos=self.yPos,yMove = 20)
+                        fired += 2
+                        Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-35,yPos=y,yMove = 20)
+                        Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-15,yPos=y,yMove = 20)
                 else:
                     for y in range(self.yPos,TOPBORDER,-10):
+                        fired +=1
                         Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/2,yPos=y,yMove = 20)
+            print(fired)
             self.specialCooldown = 60
         elif(self.specialActive=="minigun"):
             for i in range(0,self.bulletnumber):
@@ -166,7 +186,8 @@ class Player(Entity):
 
     def specialtickdown(self):
         self.specialCooldown -= 1
-        
+    def bulletTickdown(self):
+        self.bulletCooldown-=1
     def movement(self,move,state):
         self.direction[move]=state
     
@@ -349,6 +370,7 @@ def playerMove(player):
         player.moveRight()
 
 def levelCreator(back,level,border,DefEnemy):
+    jukebox("combat1.mp3")
     if (level == 1):
         Entity(back,xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
         Entity(border,yPos=0,xLength=WIDTH,yLength=TOPBORDER)
@@ -449,7 +471,9 @@ def purchase(buyer,buyerX,buyerY):
         else:
             status = "You do not have enough points!"
     return status
-
+def jukebox(song,start=0.0):
+    pygame.mixer.music.load(song)
+    pygame.mixer.music.play(-1, start)
 def titleScreen():
     #assets for title screen
     global Multiplayer
@@ -462,50 +486,58 @@ def titleScreen():
     coolCane = pygame.transform.flip(pygame.image.load("CoolCanePNG.png"),1,0)
     gameStart = False
     stage = "start"
+    inputCooldown = 0
+    jukebox("menu1.mp3")
     while(not gameStart):
-        # for i in range(len(inputs)):
-        #     if(GPIO.input(inputs[i])):
-        #         if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
-        #             pygame.quit()
-        #             gameEnd = True
-        #             os._exit(1)
-        #         if ((GPIO.input(inputs[7]) or GPIO.input(inputs[12])) and (stage == "guide2")):
-        #             if (Multiplayer):
-        #                 stage = "meet2"
-        #             else:
-        #                 stage = "meet1"
-        #         if ((GPIO.input(inputs[6]) or GPIO.input(inputs[13]))and(stage == "meet1" or stage == "meet2")):
-        #             gameStart = True
-        #         if(GPIO.input(inputs[0])):
-        #             stage = "guide1"
-        #             Multiplayer = False
-        #         elif(GPIO.input(inputs[1])):
-        #             stage = "guide1"
-        #             Multiplayer = True
-        #         elif((GPIO.input(inputs[7]) or GPIO.input(inputs[12])) and (stage == "guide1")):
-        #             stage = "guide2"
-        for event in pygame.event.get():
-            if (event.type == pygame.QUIT):
-                pygame.quit()
-                gameStart = True
-                os._exit(1)
-            elif event.type == pygame.KEYDOWN:
-                if ((event.key == pygame.K_RETURN or event.key == pygame.K_SPACE) and (stage == "guide2")):
-                    if (Multiplayer):
-                        stage = "meet2"
-                    else:
-                        stage = "meet1"
-                if ((event.key == pygame.K_e or event.key == pygame.K_BACKSLASH)and(stage == "meet1" or stage == "meet2")):
+        if (controls == "console"):
+            for i in range(len(inputs)):
+                if (inputCooldown == 0):
+                    if(GPIO.input(inputs[i])):
+                        inputCooldown=15
+                        if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
+                            pygame.quit()
+                            gameEnd = True
+                            os._exit(1)
+                        if ((GPIO.input(inputs[7]) or GPIO.input(inputs[12])) and (stage == "guide2")):
+                            if (Multiplayer):
+                                stage = "meet2"
+                            else:
+                                stage = "meet1"
+                        if ((GPIO.input(inputs[6]) or GPIO.input(inputs[13]))and(stage == "meet1" or stage == "meet2")):
+                            gameStart = True
+                        if(GPIO.input(inputs[0])):
+                            stage = "guide1"
+                            Multiplayer = False
+                        elif(GPIO.input(inputs[1])):
+                            stage = "guide1"
+                            Multiplayer = True
+                        elif((GPIO.input(inputs[7]) or GPIO.input(inputs[12])) and (stage == "guide1")):
+                            stage = "guide2"
+        if (controls == "keyboard"):
+            for event in pygame.event.get():
+                if (event.type == pygame.QUIT):
+                    pygame.quit()
                     gameStart = True
-                if (event.key == pygame.K_1):
-                    stage = "guide1"
-                    Multiplayer = False
-                elif (event.key == pygame.K_2):
-                    stage = "guide1"
-                    Multiplayer = True
-                elif (event.key == pygame.K_RETURN or event.key == pygame.K_SPACE) and (stage =="guide1"):
-                    stage = "guide2"
+                    os._exit(1)
+                elif event.type == pygame.KEYDOWN:
+                    if ((event.key == pygame.K_RETURN or event.key == pygame.K_SPACE) and (stage == "guide2")):
+                        if (Multiplayer):
+                            stage = "meet2"
+                        else:
+                            stage = "meet1"
+                    if ((event.key == pygame.K_e or event.key == pygame.K_BACKSLASH)and(stage == "meet1" or stage == "meet2")):
+                        gameStart = True
+                    if (event.key == pygame.K_1):
+                        stage = "guide1"
+                        Multiplayer = False
+                    elif (event.key == pygame.K_2):
+                        stage = "guide1"
+                        Multiplayer = True
+                    elif (event.key == pygame.K_RETURN or event.key == pygame.K_SPACE) and (stage =="guide1"):
+                        stage = "guide2"
         gameDisplay.blit(background,(0,0))
+        if (inputCooldown>0):
+            inputCooldown-=1
         if (stage == "start"):
             line1 = bigText.render("CANES CRUSADERS",True,(255,255,255))
             gameDisplay.blit(line1,(100,75))
@@ -585,28 +617,41 @@ def cutscene(scene):
     Inform = medText.render("PRESS PLAYER SELECT TO CONTINUE",True,(255,255,255))
     BabyCane = pygame.transform.scale(pygame.image.load("BabyCane.png"),(200,200))
     showtime = True
+    inputCooldown = 0
+    if (scene == "shop"):
+        jukebox("menu1.mp3")
+    elif (scene == "lose"):
+        jukebox("death1.mp3")
+    elif (scene == "levelEnd"):
+        jukebox("bossIntro.mp3")
     while showtime:
-        # for i in range(len(inputs)):
-        #     if(GPIO.input(inputs[i])):
-        #         if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
-        #             pygame.quit()
-        #             showtime = False
-        #             os._exit(1)
-        #         if (GPIO.input(inputs[0]) or GPIO.input(inputs[1])):
-        #             sceneStage +=1
-        for event in pygame.event.get():
-            if (event.type == pygame.QUIT):
-                pygame.quit()
-                showtime = False
-                os._exit(1)
-            if (event.type ==pygame.KEYDOWN):
-                if (event.key == pygame.K_ESCAPE):
+        if (controls == "console"):
+            for i in range(len(inputs)):
+                if(GPIO.input(inputs[i])):
+                    if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
+                        pygame.quit()
+                        showtime = False
+                        os._exit(1)
+                    if (inputCooldown==0):
+                        if (GPIO.input(inputs[0]) or GPIO.input(inputs[1])):
+                            inputCooldown = 5
+                            sceneStage +=1
+        if (controls == "keyboard"):
+            for event in pygame.event.get():
+                if (event.type == pygame.QUIT):
                     pygame.quit()
                     showtime = False
                     os._exit(1)
-                if (event.key == pygame.K_1 or event.key == pygame.K_2):
-                    sceneStage+=1
+                if (event.type ==pygame.KEYDOWN):
+                    if (event.key == pygame.K_ESCAPE):
+                        pygame.quit()
+                        showtime = False
+                        os._exit(1)
+                    if (event.key == pygame.K_1 or event.key == pygame.K_2):
+                        sceneStage+=1
         fps.tick(10)
+        if (inputCooldown>0):
+            inputCooldown-=1
         gameDisplay.blit(Border,(0,0))
         gameDisplay.blit(Border,(0,BOTTOMBORDER))
         gameDisplay.blit(Inform,(60,15))
@@ -685,6 +730,8 @@ def cutscene(scene):
                 line1=bigText.render("LEVEL COMPLETE",True,(255,255,255))
                 gameDisplay.blit(line1,(125,TOPBORDER+100))
             elif (sceneStage ==2):
+                line1=bigText.render("LEVEL COMPLETE",True,(255,255,255))
+                gameDisplay.blit(line1,(125,TOPBORDER+100))
                 showtime = False
         elif (scene == "lose"):
             gameDisplay.blit(SpaceBack,(0,TOPBORDER))
@@ -748,9 +795,19 @@ def shop():
     global points
     points = points
     status = "What would you like to buy?"
+    ToddBuyCooldown = 0
+    AjBuyCooldown = 0
+    noSkip = 30
+    
     if (level == 1):
         cutscene("shop")
-
+    songSelect = randint(1,11)
+    if (songSelect>=1 and songSelect <=5):
+        jukebox("shop1.mp3")
+    elif (songSelect>=6 and songSelect <=10):
+        jukebox("shop2.mp3")
+    elif (songSelect>10):
+        jukebox("shopRare.mp3")
     while(shopping):
         gameDisplay.blit(shopFront,(0,TOPBORDER))
         gameDisplay.blit(Border,(0,0))
@@ -774,104 +831,122 @@ def shop():
         gameDisplay.blit(Minigun,(590,350))
         gameDisplay.blit(Cannon,(340,350))
         gameDisplay.blit(SBreaker,(465,350))
-
-        # for i in range(len(inputs)):
-        #     if(GPIO.input(inputs[i])):
-        #         if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
-        #             pygame.quit()
-        #             shopping = False
-        #             os._exit(1)
-        #         if (GPIO.input(inputs[0]) or GPIO.input(inputs[1])):
-        #             shopping  = False
-        #         #Todd's selection
-        #         if (GPIO.input(inputs[4])):
-        #             if (ToddPos["xPos"] >0):
-        #                 ToddPos["xPos"] -= 1
-        #         if (GPIO.input(inputs[5])):
-        #             if (ToddPos["xPos"]<5):
-        #                 ToddPos["xPos"] += 1
-        #         if (GPIO.input(inputs[2])):
-        #             if (ToddPos["yPos"] >0):
-        #                 ToddPos["yPos"] -= 1
-        #         if (GPIO.input(inputs[3])):
-        #             if (ToddPos["yPos"]<1):
-        #                 ToddPos["yPos"] += 1
-                    
-        #         #AJ's selection
-        #         if(Multiplayer):
-        #             if (GPIO.input(inputs[9])):
-        #                 if (AjPos["xPos"] >0):
-        #                     AjPos["xPos"] -= 1
-        #             if (GPIO.input(inputs[8])):
-        #                 if (AjPos["xPos"]<5):
-        #                     AjPos["xPos"] += 1
-        #             if (GPIO.input(inputs[10])):
-        #                 if (AjPos["yPos"] >0):
-        #                     AjPos["yPos"] -= 1
-        #             if (GPIO.input(inputs[11])):
-        #                 if (AjPos["yPos"]<1):
-        #                     AjPos["yPos"] += 1
-        for event in pygame.event.get():
-            if (event.type == pygame.QUIT):
-                pygame.quit()
-                shopping = False
-                os._exit(1)
-            if (event.type ==pygame.KEYDOWN):
-                if (event.key == pygame.K_ESCAPE):
+        if (controls == "console"):
+            for i in range(len(inputs)):
+                if(GPIO.input(inputs[i])):
+                    if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
+                        pygame.quit()
+                        shopping = False
+                        os._exit(1)
+                    if (noSkip==0):
+                        if (GPIO.input(inputs[0]) or GPIO.input(inputs[1])):
+                            shopping  = False
+                    #Todd's selection
+                    if (GPIO.input(inputs[4])):
+                        if (ToddPos["xPos"] >0):
+                            ToddPos["xPos"] -= 1
+                    if (GPIO.input(inputs[5])):
+                        if (ToddPos["xPos"]<5):
+                            ToddPos["xPos"] += 1
+                    if (GPIO.input(inputs[2])):
+                        if (ToddPos["yPos"] >0):
+                            ToddPos["yPos"] -= 1
+                    if (GPIO.input(inputs[3])):
+                        if (ToddPos["yPos"]<1):
+                            ToddPos["yPos"] += 1
+                        
+                    #AJ's selection
+                    if(Multiplayer):
+                        if (GPIO.input(inputs[9])):
+                            if (AjPos["xPos"] >0):
+                                AjPos["xPos"] -= 1
+                        if (GPIO.input(inputs[8])):
+                            if (AjPos["xPos"]<5):
+                                AjPos["xPos"] += 1
+                        if (GPIO.input(inputs[10])):
+                            if (AjPos["yPos"] >0):
+                                AjPos["yPos"] -= 1
+                        if (GPIO.input(inputs[11])):
+                            if (AjPos["yPos"]<1):
+                                AjPos["yPos"] += 1
+                    #Todd and AJ's firing (space and enter respectively)
+                    if (ToddBuyCooldown == 0):
+                        if (GPIO.input(inputs[7])):
+                            ToddBuyCooldown = 5
+                            status = purchase(playerList[0],ToddPos["xPos"],ToddPos["yPos"])
+                    if(Multiplayer):
+                        if(AjBuyCooldown == 0):
+                            if (GPIO.input(inputs[12])):
+                                AjBuyCooldown = 5
+                                status = purchase(playerList[1],AjPos["xPos"],AjPos["yPos"])
+        if (controls == "keyboard"):
+            for event in pygame.event.get():
+                if (event.type == pygame.QUIT):
                     pygame.quit()
                     shopping = False
                     os._exit(1)
-                if (event.key == pygame.K_1 or event.key == pygame.K_2):
-                    shopping  = False
-                #Todd's selection
-                if (event.key == pygame.K_a):
-                    if (ToddPos["xPos"] >0):
-                        ToddPos["xPos"] -= 1
-                if (event.key == pygame.K_d):
-                    if (ToddPos["xPos"]<5):
-                        ToddPos["xPos"] += 1
-                if (event.key == pygame.K_w):
-                    if (ToddPos["yPos"] >0):
-                        ToddPos["yPos"] -= 1
-                if (event.key == pygame.K_s):
-                    if (ToddPos["yPos"]<1):
-                        ToddPos["yPos"] += 1
-                    
-                #AJ's selection
-                if(Multiplayer):
-                    if (event.key == pygame.K_LEFT):
-                        if (AjPos["xPos"] >0):
-                            AjPos["xPos"] -= 1
-                    if (event.key == pygame.K_RIGHT):
-                        if (AjPos["xPos"]<5):
-                            AjPos["xPos"] += 1
-                    if (event.key == pygame.K_UP):
-                        if (AjPos["yPos"] >0):
-                            AjPos["yPos"] -= 1
-                    if (event.key == pygame.K_DOWN):
-                        if (AjPos["yPos"]<1):
-                            AjPos["yPos"] += 1
-                #Todd and AJ's firing (space and enter respectively)
-                # if (GPIO.input(inputs[7])):
-                #     status = purchase(playerList[0],ToddPos["xPos"],ToddPos["yPos"])
-                # if(Multiplayer):
-                #     if (GPIO.input(inputs[12])):
-                #         status = purchase(playerList[1],AjPos["xPos"],AjPos["yPos"])
-                if (event.key == pygame.K_SPACE):
-                    status = purchase(playerList[0],ToddPos["xPos"],ToddPos["yPos"])
-                if(Multiplayer):
-                    if (event.key == pygame.K_RETURN):
-                        status = purchase(playerList[1],AjPos["xPos"],AjPos["yPos"])
+                if (event.type ==pygame.KEYDOWN):
+                    if (event.key == pygame.K_ESCAPE):
+                        pygame.quit()
+                        shopping = False
+                        os._exit(1)
+                    if (noSkip == 0):
+                        if (event.key == pygame.K_1 or event.key == pygame.K_2):
+                            shopping  = False
+                    #Todd's selection
+                    if (event.key == pygame.K_a):
+                        if (ToddPos["xPos"] >0):
+                            ToddPos["xPos"] -= 1
+                    if (event.key == pygame.K_d):
+                        if (ToddPos["xPos"]<5):
+                            ToddPos["xPos"] += 1
+                    if (event.key == pygame.K_w):
+                        if (ToddPos["yPos"] >0):
+                            ToddPos["yPos"] -= 1
+                    if (event.key == pygame.K_s):
+                        if (ToddPos["yPos"]<1):
+                            ToddPos["yPos"] += 1
+                        
+                    #AJ's selection
+                    if(Multiplayer):
+                        if (event.key == pygame.K_LEFT):
+                            if (AjPos["xPos"] >0):
+                                AjPos["xPos"] -= 1
+                        if (event.key == pygame.K_RIGHT):
+                            if (AjPos["xPos"]<5):
+                                AjPos["xPos"] += 1
+                        if (event.key == pygame.K_UP):
+                            if (AjPos["yPos"] >0):
+                                AjPos["yPos"] -= 1
+                        if (event.key == pygame.K_DOWN):
+                            if (AjPos["yPos"]<1):
+                                AjPos["yPos"] += 1
+                
+                    if (event.key == pygame.K_SPACE):
+                        status = purchase(playerList[0],ToddPos["xPos"],ToddPos["yPos"])
+                    if(Multiplayer):
+                        if (event.key == pygame.K_RETURN):
+                            status = purchase(playerList[1],AjPos["xPos"],AjPos["yPos"])
         fps.tick(15)
         gameDisplay.blit(ToddShop,(ToddPos["xPos"]*125+75,ToddPos["yPos"]*100+300))
         if Multiplayer:
             gameDisplay.blit(AjShop,(AjPos["xPos"]*125+130,AjPos["yPos"]*100+300))
-        
+        if (ToddBuyCooldown>0):
+            ToddBuyCooldown-=1
+        if (AjBuyCooldown>0):
+            AjBuyCooldown-=1
+        if (noSkip > 0):
+            noSkip -=1
         RCMessage = tinyText.render("RC: "+str(status),True,(0,0,0))
         gameDisplay.blit(RCMessage,(320,100))
         for player in playerList:
-            for i in range(player.health):
-                gameDisplay.blit(hp,(player.healthLocation+i*50,BOTTOMBORDER+10))
+            lives = medText.render("x {}".format(player.health),True,(255,255,255))
+            if (controls == "console"):
+                gameDisplay.blit(hp,(player.healthLocation,BOTTOMBORDER))
+                gameDisplay.blit(lives,(player.healthLocation+30,BOTTOMBORDER))
+            elif (controls == "keyboard"):
+                gameDisplay.blit(hp,(player.healthLocation,BOTTOMBORDER+10))
+                gameDisplay.blit(lives,(player.healthLocation+30,BOTTOMBORDER+10))
         pygame.display.flip()
 def lose():
     global points
@@ -890,38 +965,44 @@ def lose():
     gameOver = bigText.render("Game Over",True,(255,255,255))
     score = medText.render("Your score: {}".format(points),True,(255,255,255))
     inform = medText.render("Press fire to continue",True,(255,0,0))
+    inputCooldown = 5
     action = False
     while(not action):
         gameDisplay.blit(background,(0,0))
         gameDisplay.blit(gameOver,(200,200))
         gameDisplay.blit(score,(260,300))
         gameDisplay.blit(inform,(200,350))
-
-        # for i in range(len(inputs)):
-        #     if(GPIO.input(inputs[i])):
-        #         if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
-        #             pygame.quit()
-        #             action = True
-        #             os._exit(1)
-        #             return False
-        #         if(GPIO.input(inputs[7]) or GPIO.input(inputs[12])):
-        #             action = True
-        #             points = 0
-        for event in pygame.event.get():
-                if (event.type == pygame.QUIT):
-                    pygame.quit()
-                    action = True
-                    os._exit(1)
-                    return False
-                if (event.type ==pygame.KEYDOWN):
-                    if (event.key == pygame.K_ESCAPE):
+        if (controls == "console"):
+            for i in range(len(inputs)):
+                if(GPIO.input(inputs[i])):
+                    if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
                         pygame.quit()
                         action = True
                         os._exit(1)
                         return False
-                    if(event.key == pygame.K_SPACE or event.key ==pygame.K_RETURN):
+                    if (inputCooldown == 0):
+                        if(GPIO.input(inputs[7]) or GPIO.input(inputs[12])):
+                            action = True
+                            points = 0
+        if (controls == "keyboard"):
+            for event in pygame.event.get():
+                    if (event.type == pygame.QUIT):
+                        pygame.quit()
                         action = True
+                        os._exit(1)
+                        return False
+                    if (event.type ==pygame.KEYDOWN):
+                        if (event.key == pygame.K_ESCAPE):
+                            pygame.quit()
+                            action = True
+                            os._exit(1)
+                            return False
+                        if(event.key == pygame.K_SPACE or event.key ==pygame.K_RETURN):
+                            action = True
         pygame.display.flip()
+        fps.tick(15)
+        if (inputCooldown>0):
+            inputCooldown-=1
     titleScreen()
                     
 def mainGameLoop():
@@ -1021,137 +1102,138 @@ def mainGameLoop():
                 elif(level ==7):
                     addEnemy(level,ChickDef,ChickFast,ChickShoot,ChickLarge,bulletColorEnemy)
                 enemies-=1
-
-        # for i in range(len(inputs)):
-            
-        #     if(GPIO.input(inputs[i])):
-        #         if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
-        #             pygame.quit()
-        #             gameEnd = True
-        #             os._exit(1)
-        #         #Todd's 4 directional movement engaged
-        #         if(Todd.alive):
-        #             if (GPIO.input(inputs[2])):
-        #                 Todd.movement("up",True)
-        #             else:
-        #                 Todd.movement("up",False)
-        #             if (GPIO.input(inputs[4])):
-        #                 Todd.movement("left",True)
-        #             else:
-        #                 Todd.movement("left",False)
-        #             if (GPIO.input(inputs[3])):
-        #                 Todd.movement("down",True)
-        #             else:
-        #                 Todd.movement("down",False)
-        #             if (GPIO.input(inputs[5])):
-        #                 Todd.movement("right",True)
-        #             else:
-        #                 Todd.movement("right",False)
-        #         #AJ's 4 directional movement engaged
-        #         if(Multiplayer):
-        #             if(Aj.alive):
-        #                 if (GPIO.input(inputs[10])):
-        #                     Aj.movement("up",True)
-        #                 else:
-        #                     Aj.movement("up",False)
-        #                 if (GPIO.input(inputs[9])):
-        #                     Aj.movement("left",True)
-        #                 else:
-        #                     Aj.movement("left",False)
-        #                 if (GPIO.input(inputs[11])):
-        #                     Aj.movement("down",True)
-        #                 else:
-        #                     Aj.movement("down",False)
-        #                 if (GPIO.input(inputs[8])):
-        #                     Aj.movement("right",True)
-        #                 else:
-        #                     Aj.movement("right",False)
+        if (controls == "console"):
+            for i in range(len(inputs)):
                 
-        #         #Todd and AJ's firing (space and enter respectively)
-        #         if(Todd.alive):
-        #             if (GPIO.input(inputs[7])):
-        #                 if(Todd.bulletCooldown == 0):
-        #                     Todd.shoot()
-        #             if(Todd.specialCooldown == 0):
-        #                 if (GPIO.input(inputs[6])):
-        #                     Todd.special()
-        #         if(Multiplayer):
-        #             if(Aj.alive):
-        #                 if (GPIO.input(inputs[12])):
-        #                     if(Aj.bulletCooldown == 0):
-        #                         Aj.shoot()
-        #                 if(Aj.specialCooldown == 0):
-        #                     if(GPIO.input(inputs[13])):
-        #                         Aj.special()   
-        # 
-        # for keyboard inputs     
-        for event in pygame.event.get():
-            if (event.type == pygame.QUIT):
-                pygame.quit()
-                gameEnd = True
-                os._exit(1)
-            if (event.type ==pygame.KEYDOWN):
-                if (event.key == pygame.K_ESCAPE):
+                if(GPIO.input(inputs[i])):
+                    if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
+                        pygame.quit()
+                        gameEnd = True
+                        os._exit(1)
+                    #Todd's 4 directional movement engaged
+                    if(Todd.alive):
+                        if (GPIO.input(inputs[2])):
+                            Todd.movement("up",True)
+                        else:
+                            Todd.movement("up",False)
+                        if (GPIO.input(inputs[4])):
+                            Todd.movement("left",True)
+                        else:
+                            Todd.movement("left",False)
+                        if (GPIO.input(inputs[3])):
+                            Todd.movement("down",True)
+                        else:
+                            Todd.movement("down",False)
+                        if (GPIO.input(inputs[5])):
+                            Todd.movement("right",True)
+                        else:
+                            Todd.movement("right",False)
+                    #AJ's 4 directional movement engaged
+                    if(Multiplayer):
+                        if(Aj.alive):
+                            if (GPIO.input(inputs[10])):
+                                Aj.movement("up",True)
+                            else:
+                                Aj.movement("up",False)
+                            if (GPIO.input(inputs[9])):
+                                Aj.movement("left",True)
+                            else:
+                                Aj.movement("left",False)
+                            if (GPIO.input(inputs[11])):
+                                Aj.movement("down",True)
+                            else:
+                                Aj.movement("down",False)
+                            if (GPIO.input(inputs[8])):
+                                Aj.movement("right",True)
+                            else:
+                                Aj.movement("right",False)
+                    
+                    #Todd and AJ's firing (space and enter respectively)
+                    if(Todd.alive):
+                        if (GPIO.input(inputs[7])):
+                            if(Todd.bulletCooldown == 0):
+                                Todd.shoot()
+                        if(Todd.specialCooldown == 0):
+                            if (GPIO.input(inputs[6])):
+                                Todd.special()
+                    if(Multiplayer):
+                        if(Aj.alive):
+                            if (GPIO.input(inputs[12])):
+                                if(Aj.bulletCooldown == 0):
+                                    Aj.shoot()
+                            if(Aj.specialCooldown == 0):
+                                if(GPIO.input(inputs[13])):
+                                    Aj.special()   
+            
+        # for keyboard inputs    
+        if (controls == "keyboard"): 
+            for event in pygame.event.get():
+                if (event.type == pygame.QUIT):
                     pygame.quit()
                     gameEnd = True
                     os._exit(1)
-                #Todd's 4 directional movement engaged
-                if(Todd.alive):
-                    if (event.key == pygame.K_w):
-                        Todd.movement("up",True)
-                    if (event.key == pygame.K_a):
-                        Todd.movement("left",True)
-                    if (event.key == pygame.K_s):
-                        Todd.movement("down",True)
-                    if (event.key == pygame.K_d):
-                        Todd.movement("right",True)
-                #AJ's 4 directional movement engaged
-                if(Multiplayer):
-                    if(Aj.alive):
+                if (event.type ==pygame.KEYDOWN):
+                    if (event.key == pygame.K_ESCAPE):
+                        pygame.quit()
+                        gameEnd = True
+                        os._exit(1)
+                    #Todd's 4 directional movement engaged
+                    if(Todd.alive):
+                        if (event.key == pygame.K_w):
+                            Todd.movement("up",True)
+                        if (event.key == pygame.K_a):
+                            Todd.movement("left",True)
+                        if (event.key == pygame.K_s):
+                            Todd.movement("down",True)
+                        if (event.key == pygame.K_d):
+                            Todd.movement("right",True)
+                    #AJ's 4 directional movement engaged
+                    if(Multiplayer):
+                        if(Aj.alive):
+                            if (event.key == pygame.K_UP):
+                                Aj.movement("up",True)
+                            if (event.key == pygame.K_LEFT):
+                                Aj.movement("left",True)
+                            if (event.key == pygame.K_DOWN):
+                                Aj.movement("down",True)
+                            if (event.key == pygame.K_RIGHT):
+                                Aj.movement("right",True)
+                    
+                    #Todd and AJ's firing (space and enter respectively)
+                    if(Todd.alive):
+                        if (event.key == pygame.K_SPACE):
+                            Todd.shoot()
+                        if(Todd.specialCooldown == 0):
+                            if (event.key == pygame.K_e):
+                                Todd.special()
+                    if(Multiplayer):
+                        if(Aj.alive):
+                            if (event.key == pygame.K_RETURN):
+                                Aj.shoot()
+                            if(Aj.specialCooldown == 0):
+                                if(event.key == pygame.K_BACKSLASH):
+                                    Aj.special()
+                    
+                if (event.type==pygame.KEYUP):
+                    #Todd's 4 directional movement disengaged
+                    if event.key == pygame.K_w:
+                        Todd.movement("up",False)
+                    if event.key == pygame.K_a:
+                        Todd.movement("left",False)
+                    if event.key == pygame.K_s:
+                        Todd.movement("down",False)
+                    if event.key == pygame.K_d:
+                        Todd.movement("right",False)
+                    #AJ's 4 directional movement disengaged
+                    if(Multiplayer):
                         if (event.key == pygame.K_UP):
-                            Aj.movement("up",True)
-                        if (event.key == pygame.K_LEFT):
-                            Aj.movement("left",True)
-                        if (event.key == pygame.K_DOWN):
-                            Aj.movement("down",True)
-                        if (event.key == pygame.K_RIGHT):
-                            Aj.movement("right",True)
-                
-                #Todd and AJ's firing (space and enter respectively)
-                if(Todd.alive):
-                    if (event.key == pygame.K_SPACE):
-                        Todd.shoot()
-                    if(Todd.specialCooldown == 0):
-                        if (event.key == pygame.K_e):
-                            Todd.special()
-                if(Multiplayer):
-                    if(Aj.alive):
-                        if (event.key == pygame.K_RETURN):
-                            Aj.shoot()
-                        if(Aj.specialCooldown == 0):
-                            if(event.key == pygame.K_BACKSLASH):
-                                Aj.special()
-                
-            if (event.type==pygame.KEYUP):
-                #Todd's 4 directional movement disengaged
-                if event.key == pygame.K_w:
-                    Todd.movement("up",False)
-                if event.key == pygame.K_a:
-                    Todd.movement("left",False)
-                if event.key == pygame.K_s:
-                    Todd.movement("down",False)
-                if event.key == pygame.K_d:
-                    Todd.movement("right",False)
-                #AJ's 4 directional movement disengaged
-                if(Multiplayer):
-                    if (event.key == pygame.K_UP):
-                        Aj.movement("up",False)
-                    if event.key == pygame.K_LEFT:
-                        Aj.movement("left",False)
-                    if event.key == pygame.K_DOWN:
-                        Aj.movement("down",False)
-                    if event.key == pygame.K_RIGHT:
-                        Aj.movement("right",False)
+                            Aj.movement("up",False)
+                        if event.key == pygame.K_LEFT:
+                            Aj.movement("left",False)
+                        if event.key == pygame.K_DOWN:
+                            Aj.movement("down",False)
+                        if event.key == pygame.K_RIGHT:
+                            Aj.movement("right",False)
         playerMove(Todd)
         if(Multiplayer):
             playerMove(Aj)
@@ -1191,6 +1273,8 @@ def mainGameLoop():
                 player.specialtickdown()
             if(player.invincibility>0):
                 player.tickdown()
+            if(player.bulletCooldown>0):
+                player.bulletTickdown()
             if (player.invincibility>0):
                 player.image=player.invimage
             else:
@@ -1203,9 +1287,14 @@ def mainGameLoop():
             
         collectiveHealth = 0
         for player in playerList:
-            for i in range(player.health):
-                collectiveHealth += 1
-                gameDisplay.blit(hp,(player.healthLocation+i*50,BOTTOMBORDER+10))
+            collectiveHealth += player.health
+            lives = medText.render("x {}".format(player.health),True,(255,255,255))
+            if (controls == "console"):
+                gameDisplay.blit(hp,(player.healthLocation,BOTTOMBORDER))
+                gameDisplay.blit(lives,(player.healthLocation+30,BOTTOMBORDER))
+            elif (controls == "keyboard"):
+                gameDisplay.blit(hp,(player.healthLocation,BOTTOMBORDER+10))
+                gameDisplay.blit(lives,(player.healthLocation+30,BOTTOMBORDER+10))
         if collectiveHealth <= 0:
             cutscene("lose")
             lose()

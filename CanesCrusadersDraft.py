@@ -427,26 +427,31 @@ def titleScreen():
     ajTitle = pygame.transform.scale(pygame.image.load("AJPNG.png"),(200,200))
     gameStart = False
     stage = "start"
+    inputCooldown = 0
     while(not gameStart):
-        for i in range(len(inputs)):
-            if(GPIO.input(inputs[i])):
-                if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
-                    pygame.quit()
-                    gameEnd = True
-                    os._exit(1)
-                if ((GPIO.input(inputs[7]) or GPIO.input(inputs[12])) and (stage == "guide")):
-                    if (Multiplayer):
-                        stage = "inform2"
-                    else:
-                        stage = "inform1"
-                if ((GPIO.input(inputs[6]) or GPIO.input(inputs[13]))and(stage == "inform1" or stage == "inform2")):
-                    gameStart = True
-                if(GPIO.input(inputs[0])):
-                    stage = "guide"
-                    Multiplayer = False
-                elif(GPIO.input(inputs[1])):
-                    stage = "guide"
-                    Multiplayer = True
+        if (inputCooldown==0):
+            for i in range(len(inputs)):
+                if(GPIO.input(inputs[i])):
+                    inputCooldown = 5
+                    if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
+                        pygame.quit()
+                        gameEnd = True
+                        os._exit(1)
+                    if ((GPIO.input(inputs[7]) or GPIO.input(inputs[12])) and (stage == "guide")):
+                        if (Multiplayer):
+                            stage = "inform2"
+                        else:
+                            stage = "inform1"
+                    if ((GPIO.input(inputs[6]) or GPIO.input(inputs[13]))and(stage == "inform1" or stage == "inform2")):
+                        gameStart = True
+                    if(GPIO.input(inputs[0])):
+                        stage = "guide"
+                        Multiplayer = False
+                    elif(GPIO.input(inputs[1])):
+                        stage = "guide"
+                        Multiplayer = True
+        else:
+            inputCooldown -= 1
         gameDisplay.blit(background,(0,0))
         if (stage == "start"):
             line1 = bigText.render("CANES CRUSADERS",True,(255,255,255))
@@ -525,6 +530,8 @@ def shop():
     global points
     points = points
     status = "What would you like to buy?"
+    ToddBuyCooldown = 0
+    AjBuyCooldown = 0
 
     while(shopping):
         gameDisplay.blit(shopFront,(0,TOPBORDER))
@@ -588,14 +595,20 @@ def shop():
                             AjPos["yPos"] += 1
                 #Todd and AJ's firing (space and enter respectively)
                 if (GPIO.input(inputs[7])):
+                    ToddBuyCooldown = 5
                     status = purchase(playerList[0],ToddPos["xPos"],ToddPos["yPos"])
                 if(Multiplayer):
                     if (GPIO.input(inputs[12])):
+                        AjBuyCooldown = 5
                         status = purchase(playerList[1],AjPos["xPos"],AjPos["yPos"])
+        if (ToddBuyCooldown > 0):
+            ToddBuyCooldown-=1
         fps.tick(15)
         gameDisplay.blit(ToddShop,(ToddPos["xPos"]*125+75,ToddPos["yPos"]*100+300))
         if Multiplayer:
             gameDisplay.blit(AjShop,(AjPos["xPos"]*125+130,AjPos["yPos"]*100+300))
+            if (AjBuyCooldown > 0):
+                AjBuyCooldown-=1
         
         RCMessage = tinyText.render("RC: "+str(status),True,(0,0,0))
         gameDisplay.blit(RCMessage,(320,100))
