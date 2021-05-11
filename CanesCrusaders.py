@@ -299,8 +299,8 @@ class Boss1(shootEnemy):
     def fire(self):
         shot = randint(0,30)
         if(shot==30):
-            enemyBullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/3,yPos=self.yPos+self.yLength)
-            enemyBullet(image=self.bulletSprite,xPos=self.xPos+2*self.xLength/3,yPos=self.yPos+self.yLength)
+            enemyBullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/3,yPos=self.yPos+self.yLength-20)
+            enemyBullet(image=self.bulletSprite,xPos=self.xPos+2*self.xLength/3,yPos=self.yPos+self.yLength-20)
     def __str__(self):
         return "{},xPos:{},yPos:{},xMove:{},yMove:{},xLength:{},yLength:{},xFar:{},yFar:{},health:".format(self.image,self.xPos,self.yPos,self.xMove,self.yMove,self.xLength,self.yLength,self.xPos+self.xLength,self.yPos+self.yLength,self.health)
 class Boss2(shootEnemy):  
@@ -312,10 +312,10 @@ class Boss2(shootEnemy):
     def fire(self):
         shot = randint(0,30)
         if(shot==30):
-            enemyBullet(image=self.bulletSprite,xPos=self.xPos,yPos=self.yPos+self.yLength)
-            enemyBullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/3,yPos=self.yPos+self.yLength)
-            enemyBullet(image=self.bulletSprite,xPos=self.xPos+2*self.xLength/3,yPos=self.yPos+self.yLength)
-            enemyBullet(image=self.bulletSprite,xPos=self.xPos+self.xLength,yPos=self.yPos+self.yLength)
+            enemyBullet(image=self.bulletSprite,xPos=self.xPos,yPos=self.yPos+self.yLength-20)
+            enemyBullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/3,yPos=self.yPos+self.yLength-20)
+            enemyBullet(image=self.bulletSprite,xPos=self.xPos+2*self.xLength/3,yPos=self.yPos+self.yLength-20)
+            enemyBullet(image=self.bulletSprite,xPos=self.xPos+self.xLength,yPos=self.yPos+self.yLength-20)
     def __str__(self):
         return "{},xPos:{},yPos:{},xMove:{},yMove:{},xLength:{},yLength:{},xFar:{},yFar:{},health:".format(self.image,self.xPos,self.yPos,self.xMove,self.yMove,self.xLength,self.yLength,self.xPos+self.xLength,self.yPos+self.yLength,self.health)
 #bullet class
@@ -333,6 +333,7 @@ class Bullet(Entity):
                     enemy.damage()
                     self.remove()
                     points +=10
+                    score += 10
                     break
         if (self.yPos<=TOPBORDER):
             self.remove()   
@@ -370,6 +371,7 @@ class CannonBullet(Bullet):
         self.radius = radius*100
     def hitDetect(self):
         global points
+        global score
         dead = False
         for enemy in enemyList:
             if (enemy.xPos+enemy.xLength>self.xPos and enemy.xPos<self.xPos):
@@ -378,6 +380,7 @@ class CannonBullet(Bullet):
                     enemy.damage()
                     self.remove()
                     points +=10
+                    score += 10
                     break
         if (dead):
             for enemy in enemyList:
@@ -387,6 +390,7 @@ class CannonBullet(Bullet):
                             if (enemy.health > 0):
                                 enemy.damage()
                                 points +=10
+                                score += 10
         elif (self.yPos<=TOPBORDER):
             self.remove()
 class SuperBullet(Bullet):
@@ -395,6 +399,7 @@ class SuperBullet(Bullet):
         self.damage = damage
     def hitDetect(self):
         global points
+        global score
         for enemy in enemyList:
             if (enemy.xPos+enemy.xLength>self.xPos and enemy.xPos<self.xPos):
                 if (enemy.yPos+enemy.yLength>self.yPos and enemy.yPos<self.yPos):
@@ -402,6 +407,7 @@ class SuperBullet(Bullet):
                         if (enemy.health)>0:
                             enemy.damage()
                             points +=10
+                            score += 10
         if (self.yPos<=TOPBORDER):
             self.remove()
 
@@ -453,6 +459,7 @@ def addEnemy(level,Def,Fast,Shooter,Large,bulletColorEnemy):
 
 def purchase(buyer,buyerX,buyerY):
     global points
+    global score
     buyGrid=[{"doubleShoot":250,"doubleDamage":500,"doubleDamage2":1000,"fastMove1":2000,"fastMove2":500,"heal":100},{"shotgun":0, "laser":250, "cannon":250, "superbreaker":250, "minigun":250, "shield":250}]
     upgrade = None
     special = None
@@ -536,6 +543,8 @@ def titleScreen():
     #assets for title screen
     global Multiplayer
     global points
+    global score
+    score = 0
     points = 0
     background = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,HEIGHT))
     guide2 = pygame.transform.scale(pygame.image.load("GUIDE.png"),(WIDTH-200,HEIGHT-100))
@@ -674,6 +683,10 @@ def cutscene(scene):
     Border = pygame.transform.scale(pygame.image.load("black.png"),(WIDTH,50))
     Inform = medText.render("PRESS PLAYER SELECT TO CONTINUE",True,(255,255,255))
     BabyCane = pygame.transform.scale(pygame.image.load("BabyCane.png"),(200,200))
+    Cane2 = pygame.transform.scale(pygame.image.load("Cane2.png"),(200,200))
+    DanSuit = pygame.transform.scale(pygame.image.load("DanCathySuit.png"),(200,200))
+    DanBoss = pygame.transform.scale(pygame.image.load("DanCathyBoss.png"),(300,200))
+    CanesBack = pygame.transform.scale(pygame.image.load("CanesBack.jpg"),(WIDTH,BOTTOMBORDER-TOPBORDER))
     showtime = True
     inputCooldown = 0
     if (scene == "shop"):
@@ -826,7 +839,269 @@ def cutscene(scene):
             elif (sceneStage ==7):
                 showtime = False
         elif (scene == "preboss"):
+            gameDisplay.blit(SpaceBack,(0,TOPBORDER))
+            if (sceneStage==1):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(Cane2,(600,200))
+                line1=medText.render("RC2: Todd, it is I, Raising Cane the Second!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage==2):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(Cane2,(600,200))
+                line1=medText.render("RC2: I've come to warn you, I sense danger.",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage==3):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(Cane2,(600,200))
+                line1=medText.render("Todd: What do you mean?",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage==4):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(Cane2,(600,200))
+                line1=medText.render("RC2: I foresee a great chicken lord,",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage==5):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(Cane2,(600,200))
+                line1=medText.render("RC2: one who rivals your power!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage==6):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(Cane2,(600,200))
+                line1=medText.render("Todd: Oh dear, that's concerning!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage==7):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(Cane2,(600,200))
+                line1=medText.render("???: You are right to be concerned!!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage==8):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(Cane2,(200,200))
+                line1=medText.render("Todd and RC2: ??????",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage==9):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(Cane2,(200,200))
+                gameDisplay.blit(DanSuit,(600,200))
+                line1=medText.render("Dan: IT IS I, DAN CATHY!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage==10):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(Cane2,(200,200))
+                gameDisplay.blit(DanSuit,(600,200))
+                line1=medText.render("Dan: CEO OF CHICKFILA AND",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage==11):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(Cane2,(200,200))
+                gameDisplay.blit(DanSuit,(600,200))
+                line1=medText.render("Dan: TRUE BIRD LORD!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage==12):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(Cane2,(200,200))
+                gameDisplay.blit(DanSuit,(600,200))
+                line1=medText.render("RC2: That's him Todd! The Great Destroyer!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage==13):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(Cane2,(200,200))
+                gameDisplay.blit(DanSuit,(600,200))
+                line1=medText.render("RC2: Defeat him before it's too late!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage==14):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(Cane2,(200,200))
+                gameDisplay.blit(DanSuit,(600,200))
+                line1=medText.render("RC2: MWAHAHAHAHAHA",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage == 15):
+                showtime = False
+        elif (scene == "midboss"):
+            gameDisplay.blit(shopFront,(0,TOPBORDER))
+            if (sceneStage ==1):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(CoolCane,(650,200))
+                line1=medText.render("RC1: Todd, come quickly! You must restock!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==2):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(CoolCane,(650,200))
+                line1=medText.render("Todd: I'll admit, he's powerful! ",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==3):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(CoolCane,(650,200))
+                line1=medText.render("RC1: Aye. The others are distracting him.",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==4):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(CoolCane,(650,200))
+                line1=medText.render("RC1: But our time grows short, hurry!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage == 5):
+                showtime = False
+        elif (scene == "midboss2"):
+            gameDisplay.blit(SpaceBack,(0,TOPBORDER))
+            if (sceneStage ==1):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(DanSuit,(600,200))
+                line1=medText.render("Dan: ENOUGH GAMES TODD!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==2):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(DanSuit,(600,200))
+                line1=medText.render("Dan: I'VE GOTTEN THE INFINITY CHICKEN!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==3):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(DanSuit,(600,200))
+                line1=medText.render("Dan: WITH THIS POWER, I'LL BECOME",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==4):
+                gameDisplay.blit(Todd,(0,200))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(DanSuit,(600,200))
+                line1=medText.render("Dan: THE TRUE BIRD LORD!!!!!!!!!!!!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==5):
+                showtime=False
             
+        elif (scene == "postboss"):
+            gameDisplay.blit(SpaceBack,(0,TOPBORDER))
+            if (sceneStage ==1):
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(DanBoss,(500,200))
+                gameDisplay.blit(Cane2,(0,50))
+                gameDisplay.blit(BabyCane,(200,50))
+                gameDisplay.blit(CoolCane,(200,200))
+                gameDisplay.blit(Todd,(0,200))
+                line1=medText.render("Todd: You'll never win Dan!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==2):
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(DanBoss,(500,200))
+                gameDisplay.blit(Cane2,(0,50))
+                gameDisplay.blit(BabyCane,(200,50))
+                gameDisplay.blit(CoolCane,(200,200))
+                gameDisplay.blit(Todd,(0,200))
+                line1=medText.render("Todd: Don't you see, quality chicken",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==3):
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(DanBoss,(500,200))
+                gameDisplay.blit(Cane2,(0,50))
+                gameDisplay.blit(BabyCane,(200,50))
+                gameDisplay.blit(CoolCane,(200,200))
+                gameDisplay.blit(Todd,(0,200))
+                line1=medText.render("Todd: can't be won through violence!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==4):
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(DanBoss,(500,200))
+                gameDisplay.blit(Cane2,(0,50))
+                gameDisplay.blit(BabyCane,(200,50))
+                gameDisplay.blit(CoolCane,(200,200))
+                gameDisplay.blit(Todd,(0,200))
+                line1=medText.render("Todd: Only through hard work, perserverance,",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==5):
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(DanBoss,(500,200))
+                gameDisplay.blit(Cane2,(0,50))
+                gameDisplay.blit(BabyCane,(200,50))
+                gameDisplay.blit(CoolCane,(200,200))
+                gameDisplay.blit(Todd,(0,200))
+                line1=medText.render("Todd: and awesome dog mascots!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==6):
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(DanBoss,(500,200))
+                gameDisplay.blit(Cane2,(0,50))
+                gameDisplay.blit(BabyCane,(200,50))
+                gameDisplay.blit(CoolCane,(200,200))
+                gameDisplay.blit(Todd,(0,200))
+                line1=medText.render("Todd: Take him away guys!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==7):
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(DanBoss,(500,200))
+                gameDisplay.blit(Cane2,(0,50))
+                gameDisplay.blit(BabyCane,(200,50))
+                gameDisplay.blit(CoolCane,(200,200))
+                gameDisplay.blit(Todd,(0,200))
+                line1=medText.render("All 3 Canes: Aye aye Cap'n!",True,(0,0,0))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage == 8):
+                showtime=False
+        elif (scene == "credits"):
+            gameDisplay.blit(CanesBack,(0,TOPBORDER))
+            if (sceneStage ==1):
+                line1=medText.render("Thanks for playing!",True,(0,0,0))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==2):
+                line1=medText.render("Game by Dustin Smith and Aidan Weinreber!",True,(0,0,0))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==3):
+                line1=medText.render("Music taken from Undertale (play it!)",True,(0,0,0))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==4):
+                line1=medText.render("Images 'borrowed' and modified in Photoshop",True,(0,0,0))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==5):
+                line1=medText.render("Run on the great pygame python module!",True,(0,0,0))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==6):
+                line1=medText.render("Special thanks to the prototyping lab",True,(0,0,0))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==7):
+                line1=medText.render("and to Lowes for making this box possible.",True,(0,0,0))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==8):
+                line1=medText.render("Not sponsored by Canes! Or anyone!",True,(0,0,0))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==9):
+                line1=medText.render("In Loving Memory of Zeus.",True,(0,0,0))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage ==10):
+                line1=medText.render("Because dogs are man's best friend.",True,(0,0,0))
+                gameDisplay.blit(TextBack,(0,400))
+                gameDisplay.blit(line1,(25,425))
+            elif (sceneStage == 11):
+                showtime = False
+
+
         pygame.display.flip()
 def shop():
     ToddShop = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(50,50))
@@ -1010,6 +1285,7 @@ def shop():
         pygame.display.flip()
 def lose():
     global points
+    global score
     for shooter in range(len(shootList)):
         shootList[0].remove()
     for enemy in range(len(enemyList)):
@@ -1023,9 +1299,9 @@ def lose():
 
     background = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,HEIGHT))
     gameOver = bigText.render("Game Over",True,(255,255,255))
-    score = medText.render("Your score: {}".format(points),True,(255,255,255))
+    score = medText.render("Your score: {}".format(score),True,(255,255,255))
     inform = medText.render("Press fire to continue",True,(255,0,0))
-    inputCooldown = 5
+    inputCooldown = 15
     action = False
     while(not action):
         gameDisplay.blit(background,(0,0))
@@ -1044,6 +1320,7 @@ def lose():
                         if(GPIO.input(inputs[7]) or GPIO.input(inputs[12])):
                             action = True
                             points = 0
+                            score = 0
         if (controls == "keyboard"):
             for event in pygame.event.get():
                     if (event.type == pygame.QUIT):
@@ -1064,9 +1341,67 @@ def lose():
         if (inputCooldown>0):
             inputCooldown-=1
     titleScreen()
-                    
+def win():
+    global points
+    global score
+    for shooter in range(len(shootList)):
+        shootList[0].remove()
+    for enemy in range(len(enemyList)):
+        enemyList[0].remove()
+    for player in range(len(playerList)):
+        playerList[0].remove()
+    for bullet in range(len(bulletList)):
+        bulletList[0].remove()
+    for entity in range(len(entityDisplayList)):
+        entityDisplayList[0].remove()
+
+    background = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,HEIGHT))
+    gameOver = bigText.render("CONGRATS, YOU BEAT THE GAME!",True,(255,255,255))
+    score = medText.render("Your score: {}".format(score),True,(255,255,255))
+    inform = medText.render("Press fire to continue",True,(255,0,0))
+    inputCooldown = 15
+    action = False
+    while(not action):
+        gameDisplay.blit(background,(0,0))
+        gameDisplay.blit(gameOver,(200,200))
+        gameDisplay.blit(score,(260,300))
+        gameDisplay.blit(inform,(200,350))
+        if (controls == "console"):
+            for i in range(len(inputs)):
+                if(GPIO.input(inputs[i])):
+                    if (GPIO.input(inputs[0]) and GPIO.input(inputs[1])):
+                        pygame.quit()
+                        action = True
+                        os._exit(1)
+                        return False
+                    if (inputCooldown == 0):
+                        if(GPIO.input(inputs[7]) or GPIO.input(inputs[12])):
+                            action = True
+                            points = 0
+                            score = 0
+        if (controls == "keyboard"):
+            for event in pygame.event.get():
+                    if (event.type == pygame.QUIT):
+                        pygame.quit()
+                        action = True
+                        os._exit(1)
+                        return False
+                    if (event.type ==pygame.KEYDOWN):
+                        if (event.key == pygame.K_ESCAPE):
+                            pygame.quit()
+                            action = True
+                            os._exit(1)
+                            return False
+                        if(event.key == pygame.K_SPACE or event.key ==pygame.K_RETURN):
+                            action = True
+        pygame.display.flip()
+        fps.tick(15)
+        if (inputCooldown>0):
+            inputCooldown-=1
+    titleScreen()      
 def mainGameLoop():
     global points
+    global score
     global difficulty
     gameEnd=False
     topClear = False
@@ -1166,8 +1501,6 @@ def mainGameLoop():
                     addEnemy(level,KFCDef,KFCFast,KFCShoot,KFCLarge,bulletColorEnemy)
                 elif(level ==7):
                     addEnemy(level,ChickDef,ChickFast,ChickShoot,ChickLarge,bulletColorEnemy)
-                elif(level==8):
-                    pass
                 enemies-=1
         if (controls == "console"):
             for i in range(len(inputs)):
@@ -1316,7 +1649,17 @@ def mainGameLoop():
             for bullet in range(len(bulletList)):
                 bulletList[0].remove()
             cutscene("levelEnd")
+            if (level == 8):
+                cutscene("midboss")
+            elif (level == 9):
+                cutscene("postboss")
+                cutscene("credits")
+                win()
             shop()
+            if (level ==7):
+                cutscene("preboss")
+            elif (level ==8):
+                cutscene("midboss2")
             level += 1
             difficulty += 1
             enemies = difficulty * 13
@@ -1389,6 +1732,8 @@ global level
 level = 8
 global points 
 points = 0
+global score
+score = 0
 global instakill
 instakill = False
 #TEXT ASSETS, these will never change so are global usage (because screw passing these into every single game window)
@@ -1398,5 +1743,4 @@ global medText
 medText = pygame.font.SysFont('Arial MS', 50)
 global tinyText
 tinyText = pygame.font.SysFont('Arial MS', 25)
-
 titleScreen()
