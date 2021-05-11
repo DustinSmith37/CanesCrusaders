@@ -1830,5 +1830,4 @@ medText = pygame.font.SysFont('Arial MS', 50)
 global tinyText
 tinyText = pygame.font.SysFont('Arial MS', 25)
 #starts the chain of all game windows by calling the title screen
-cutscene("credits")
 titleScreen()
