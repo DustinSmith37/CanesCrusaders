@@ -78,7 +78,10 @@ class Entity():
         if (self.yPos>BOTTOMBORDER-self.yLength):
             self.yPos=BOTTOMBORDER-self.yLength
     def remove(self):
-        entityDisplayList.remove(self)
+        try:
+            entityDisplayList.remove(self)
+        except:
+            print("Delete Error, Ignoring")
     def __str__(self):
         return "{},xPos:{},yPos:{},xMove:{},yMove:{},xLength:{},yLength:{}".format(self.image,self.xPos,self.yPos,self.xMove,self.yMove,self.xLength,self.yLength)
         
@@ -101,8 +104,8 @@ class Player(Entity):
         self.healthLocation = healthLocation
         playerList.append(self)
         self.alive = True
-        self.upgrades = {"doubleShoot":False,"doubleDamage":False,"doubleDamage2":False,"fastMove1":False,"fastMove2":False}
-        self.specialActive = "shotgun"
+        self.upgrades = {"doubleShoot":True,"doubleDamage":True,"doubleDamage2":True,"fastMove1":False,"fastMove2":False}
+        self.specialActive = "superbreaker"
         self.specialBought = {"shotgun":True,"laser":False,"minigun":False,"cannon":False,"superbreaker":False,"shield":False}
     def shoot(self):
         self.bulletCooldown = 5
@@ -133,15 +136,13 @@ class Player(Entity):
             fired = 0
             for i in range(0,self.bulletnumber):
                 if (self.upgrades["doubleShoot"]):
-                    for y in range(self.yPos,TOPBORDER,-10):
+                    for y in range(self.yPos,self.yPos-100,-10):
                         fired += 2
                         Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-35,yPos=y,yMove = 20)
                         Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength-15,yPos=y,yMove = 20)
                 else:
                     for y in range(self.yPos,TOPBORDER,-10):
                         fired +=1
-                        Bullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/2,yPos=y,yMove = 20)
-            print(fired)
             self.specialCooldown = 60
         elif(self.specialActive=="minigun"):
             for i in range(0,self.bulletnumber):
@@ -196,7 +197,7 @@ class Player(Entity):
             if (enemy.xPos+enemy.xLength>self.xPos and enemy.xPos<self.xPos):
                 if (enemy.yPos+enemy.yLength>self.yPos and enemy.yPos<self.yPos):
                     self.damage()
-                    enemy.remove()
+                    enemy.damage()
                     break
 
     def __str__(self):
@@ -206,16 +207,21 @@ class Player(Entity):
             return "AJ"
 
     def remove(self):
-        playerList.remove(self)
-        entityDisplayList.remove(self)
+        try:
+            playerList.remove(self)
+            entityDisplayList.remove(self)
+        except:
+            print("Delete Error, Ignoring")
+
 
 #enemy class
 class Enemy(Entity):
-    def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=50,xLength=50,yLength=50,health=2,direction="right"):
+    def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=50,xLength=50,yLength=50,health=2,direction="right",boss=False):
         Entity.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength)
         enemyList.append(self)
         self.health = health
         self.direction = direction
+        self.boss = boss
     def autoMove(self):
         if (self.direction == "left"):
             self.moveLeft()
@@ -237,8 +243,11 @@ class Enemy(Entity):
             self.remove()
 
     def remove(self):
-        enemyList.remove(self)
-        entityDisplayList.remove(self)
+        try:
+            enemyList.remove(self)
+            entityDisplayList.remove(self)
+        except:
+            print("Delete Error, Ignoring")
 
 class speedEnemy(Enemy):
     def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=10,yMove=50,xLength=50,yLength=50,health=2,direction="right"):
@@ -246,8 +255,8 @@ class speedEnemy(Enemy):
  
 
 class shootEnemy(Enemy):
-    def __init__(self,image,bulletSprite,xPos=0,yPos=TOPBORDER,xMove=5,yMove=50,xLength=50,yLength=50,health=2,direction="right"):
-        Enemy.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength,health,direction)
+    def __init__(self,image,bulletSprite,xPos=0,yPos=TOPBORDER,xMove=5,yMove=50,xLength=50,yLength=50,health=2,direction="right",boss=False):
+        Enemy.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength,health,direction,boss)
         shootList.append(self)
         self.bulletSprite=bulletSprite
 
@@ -263,11 +272,14 @@ class shootEnemy(Enemy):
     def fire(self):
         shot = randint(0,30)
         if(shot==30):
-            enemyBullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/2,yPos=self.yPos)
+            enemyBullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/2,yPos=self.yPos+self.yLength)
     def remove(self):
-        enemyList.remove(self)
-        shootList.remove(self)
-        entityDisplayList.remove(self)
+        try:
+            enemyList.remove(self)
+            shootList.remove(self)
+            entityDisplayList.remove(self)
+        except:
+            print("Delete Error, Ignoring")
 
 class tankEnemy(Enemy):
     def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=1,xLength=100,yLength=100,health=10,direction="right"):
@@ -278,6 +290,34 @@ class tankEnemy(Enemy):
             self.remove()
             for player in playerList:
                 player.damage()
+class Boss1(shootEnemy):
+    def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=50,xLength=100,yLength=100,direction="right",boss=True):
+        self.bulletSprite = pygame.transform.scale(pygame.image.load("toast.png"),(30,45))
+        self.boss = boss
+        self.health=200
+        shootEnemy.__init__(self,image,self.bulletSprite,xPos,yPos,xMove,yMove,xLength,yLength,self.health,direction,self.boss)
+    def fire(self):
+        shot = randint(0,30)
+        if(shot==30):
+            enemyBullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/3,yPos=self.yPos+self.yLength)
+            enemyBullet(image=self.bulletSprite,xPos=self.xPos+2*self.xLength/3,yPos=self.yPos+self.yLength)
+    def __str__(self):
+        return "{},xPos:{},yPos:{},xMove:{},yMove:{},xLength:{},yLength:{},xFar:{},yFar:{},health:".format(self.image,self.xPos,self.yPos,self.xMove,self.yMove,self.xLength,self.yLength,self.xPos+self.xLength,self.yPos+self.yLength,self.health)
+class Boss2(shootEnemy):  
+    def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=50,xLength=300,yLength=200,direction="right",boss=True):
+        self.bulletSprite = pygame.transform.scale(pygame.image.load("toast.png"),(30,45))
+        self.boss = boss
+        self.health=500
+        shootEnemy.__init__(self,image,self.bulletSprite,xPos,yPos,xMove,yMove,xLength,yLength,self.health,direction,self.boss)
+    def fire(self):
+        shot = randint(0,30)
+        if(shot==30):
+            enemyBullet(image=self.bulletSprite,xPos=self.xPos,yPos=self.yPos+self.yLength)
+            enemyBullet(image=self.bulletSprite,xPos=self.xPos+self.xLength/3,yPos=self.yPos+self.yLength)
+            enemyBullet(image=self.bulletSprite,xPos=self.xPos+2*self.xLength/3,yPos=self.yPos+self.yLength)
+            enemyBullet(image=self.bulletSprite,xPos=self.xPos+self.xLength,yPos=self.yPos+self.yLength)
+    def __str__(self):
+        return "{},xPos:{},yPos:{},xMove:{},yMove:{},xLength:{},yLength:{},xFar:{},yFar:{},health:".format(self.image,self.xPos,self.yPos,self.xMove,self.yMove,self.xLength,self.yLength,self.xPos+self.xLength,self.yPos+self.yLength,self.health)
 #bullet class
 class Bullet(Entity):
     def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=5,yLength=10):
@@ -297,8 +337,11 @@ class Bullet(Entity):
         if (self.yPos<=TOPBORDER):
             self.remove()   
     def remove(self):
-        bulletList.remove(self)
-        entityDisplayList.remove(self)
+        try:
+            bulletList.remove(self)
+            entityDisplayList.remove(self)
+        except:
+            print("Delete Error, Ignoring")
 #moves entities into level creator or main game loop
 class enemyBullet(Entity):
     def __init__(self,image,xPos=0,yPos=TOPBORDER,xMove=5,yMove=-5,xLength=5,yLength=10):
@@ -316,8 +359,11 @@ class enemyBullet(Entity):
         if (self.yPos+self.yLength>=BOTTOMBORDER):
                 self.remove()   
     def remove(self):
-        bulletList.remove(self)
-        entityDisplayList.remove(self)
+        try:
+            bulletList.remove(self)
+            entityDisplayList.remove(self)
+        except:
+            print("Delete Error, Ignoring")
 class CannonBullet(Bullet):
     def __init__(self,image,radius = 1,xPos=0,yPos=TOPBORDER,xMove=5,yMove=5,xLength=5,yLength=10):
         Bullet.__init__(self,image,xPos,yPos,xMove,yMove,xLength,yLength)
@@ -370,15 +416,27 @@ def playerMove(player):
         player.moveRight()
 
 def levelCreator(back,level,border,DefEnemy):
-    jukebox("combat1.mp3")
+    if (level<8):
+        jukebox("combat1.mp3")
+    elif (level == 8):
+        jukebox("boss1.mp3")
+    elif (level == 9):
+        jukebox("boss2.mp3")
+
     if (level == 1):
         Entity(back,xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
         Entity(border,yPos=0,xLength=WIDTH,yLength=TOPBORDER)
         Entity(border,yPos=BOTTOMBORDER,yLength=HEIGHT-BOTTOMBORDER,xLength=WIDTH)
     else:
         entityDisplayList[0].image = back
-    for i in range(0,13):
-        Enemy(DefEnemy, xPos=(60*i))
+    if (level < 8):
+        for i in range(0,13):
+            Enemy(DefEnemy, xPos=(60*i))
+    elif (level == 8):
+        Boss1(DefEnemy,xPos=450)
+    elif (level == 9):
+        Boss2(DefEnemy,xPos=250)
+
 
 def addEnemy(level,Def,Fast,Shooter,Large,bulletColorEnemy):
     chance = randint(0,30)
@@ -767,6 +825,8 @@ def cutscene(scene):
                 gameDisplay.blit(line1,(25,425))
             elif (sceneStage ==7):
                 showtime = False
+        elif (scene == "preboss"):
+            
         pygame.display.flip()
 def shop():
     ToddShop = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(50,50))
@@ -1016,11 +1076,11 @@ def mainGameLoop():
     bulletColorTodd=pygame.transform.scale(pygame.image.load("Finger.png"),(20,30))
     bulletColorAj=pygame.transform.scale(pygame.image.load("Fries.png"),(20,30))
     bulletColorCannon=pygame.transform.scale(pygame.image.load("SpicyFinger.png"),(20,30))
-    bulletColorSuper=pygame.transform.scale(pygame.image.load("Finger.png"),(50,50))
+    bulletColorSuper=pygame.transform.scale(pygame.image.load("SBreaker.png"),(50,50))
     #Background Sprites
     CanesBack = pygame.transform.scale(pygame.image.load("CanesBack.jpg"),(WIDTH,BOTTOMBORDER-TOPBORDER))
     Border = pygame.transform.scale(pygame.image.load("black.png"),(WIDTH,50))
-    
+    SpaceBack = pygame.transform.scale(pygame.image.load("SpaceBack.jpg"),(WIDTH,BOTTOMBORDER-TOPBORDER))
     #Enemy Sprites
     ChickDef = pygame.transform.scale(pygame.image.load("Chick1.png"),(50,50))
     ChickFast = pygame.transform.scale(pygame.image.load("ChickFast.png"),(50,50))
@@ -1056,9 +1116,18 @@ def mainGameLoop():
     KFCFast = pygame.transform.scale(pygame.image.load("KFCFast.png"),(50,50))
     KFCShoot = pygame.transform.scale(pygame.image.load("KFCShoot.png"),(50,50))
     KFCLarge = pygame.transform.scale(pygame.image.load("KFCLarge.png"),(100,100))
+
+    BossHead = pygame.transform.scale(pygame.image.load("DanCathyReg.png"),(100,100))
+    BigBoss = pygame.transform.scale(pygame.image.load("DanCathyBoss.png"),(300,200))
     #Level Creation
     global level
-    levelCreator(CanesBack,level,Border,ZaxbyDef)
+    if (level == 1):
+        levelCreator(CanesBack,level,Border,ZaxbyDef)
+    elif (level == 8):
+        Entity(SpaceBack,xLength=WIDTH,yLength=BOTTOMBORDER-TOPBORDER)
+        Entity(Border,yPos=0,xLength=WIDTH,yLength=TOPBORDER)
+        Entity(Border,yPos=BOTTOMBORDER,yLength=HEIGHT-BOTTOMBORDER,xLength=WIDTH)
+        levelCreator(SpaceBack,level,Border,BossHead)
     #Player Sprites and creation
     ToddPng = pygame.transform.scale(pygame.image.load("ToddPNG.png"),(50,50))
     ToddShield = pygame.transform.scale(pygame.image.load("ToddShield.png"),(50,50))
@@ -1068,20 +1137,16 @@ def mainGameLoop():
     Todd = Player(ToddPng, ToddShield, xLength=50,yLength=50,xPos=200,yPos=400,bulletSprite=bulletColorTodd,cannonSprite=bulletColorCannon,superBreaker=bulletColorSuper)
     if(Multiplayer):
         Aj = Player(AjPng, AjShield, xLength=50,yLength=50,xPos=600,yPos=400, healthLocation=500,bulletSprite=bulletColorAj,cannonSprite=bulletColorCannon,superBreaker=bulletColorSuper)
-    
-
 
 
     for i in range(len(entityDisplayList)):
         gameDisplay.blit(entityDisplayList[i].image,(entityDisplayList[i].xPos,entityDisplayList[i].yPos))
     while not(gameEnd):
         for enemy in enemyList:
-            
             if(enemy.yPos<=TOPBORDER+enemy.yLength and enemy.yPos>= TOPBORDER and enemy.xPos<=enemy.xLength+10 and enemy.xPos>=0 ):
                 topClear = False
             else:
                 topClear = True
-        
         if(enemyList==[]):
             topClear = True
             
@@ -1101,6 +1166,8 @@ def mainGameLoop():
                     addEnemy(level,KFCDef,KFCFast,KFCShoot,KFCLarge,bulletColorEnemy)
                 elif(level ==7):
                     addEnemy(level,ChickDef,ChickFast,ChickShoot,ChickLarge,bulletColorEnemy)
+                elif(level==8):
+                    pass
                 enemies-=1
         if (controls == "console"):
             for i in range(len(inputs)):
@@ -1244,7 +1311,7 @@ def mainGameLoop():
         for enemy in enemyList:
             enemy.autoMove()
         for enemy in shootList:
-            shootEnemy.fire(enemy)
+            enemy.fire()
         if enemyList == []:
             for bullet in range(len(bulletList)):
                 bulletList[0].remove()
@@ -1258,16 +1325,21 @@ def mainGameLoop():
                     player.direction[direct]=False
             if(level==2):
                 levelCreator(CanesBack,level,Border,SaladDef)
-            if(level==3):
+            elif(level==3):
                 levelCreator(CanesBack,level,Border,PopDef)
-            if(level==4):
+            elif(level==4):
                 levelCreator(CanesBack,level,Border,BBWDef)
-            if(level==5):
+            elif(level==5):
                 levelCreator(CanesBack,level,Border,ChurchDef)
-            if(level==6):
+            elif(level==6):
                 levelCreator(CanesBack,level,Border,KFCDef)
-            if(level==7):
+            elif(level==7):
                 levelCreator(CanesBack,level,Border,ChickDef)
+            elif(level==8):
+                levelCreator(SpaceBack,level,Border,BossHead)
+            elif(level==9):
+                levelCreator(SpaceBack,level,Border,BigBoss)
+            
         for player in playerList:
             if(player.specialCooldown):
                 player.specialtickdown()
@@ -1300,7 +1372,8 @@ def mainGameLoop():
             lose()
         if instakill:
             for enemy in enemyList:
-                enemy.remove()
+                if not(enemy.boss):
+                    enemy.remove()
         pointDisplay = medText.render("Points: "+str(points),True,(255,255,255))
         levelDisplay = medText.render("Level: " +str(level), True,(255,255,255))
         gameDisplay.blit(pointDisplay, (590,10))
@@ -1313,7 +1386,7 @@ Multiplayer = True
 global difficulty 
 difficulty= 3
 global level 
-level = 1
+level = 8
 global points 
 points = 0
 global instakill
