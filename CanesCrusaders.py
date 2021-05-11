@@ -461,6 +461,9 @@ def playerMove(player):
 def levelCreator(back,level,border,DefEnemy):
     #music setting
     if (level<8):
+        songSelect = randint(0,5)
+        songList = ["combat1.mp3","combat2.mp3","combat3.mp3","combat4.mp3","combat5.mp3","combat6.mp3"]
+        jukebox(songList[songSelect])
         jukebox("combat1.mp3")
     elif (level == 8):
         jukebox("boss1.mp3")
@@ -732,13 +735,21 @@ def cutscene(scene):
     DanSuit = pygame.transform.scale(pygame.image.load("DanCathySuit.png"),(200,200))
     DanBoss = pygame.transform.scale(pygame.image.load("DanCathyBoss.png"),(300,200))
     CanesBack = pygame.transform.scale(pygame.image.load("CanesBack.jpg"),(WIDTH,BOTTOMBORDER-TOPBORDER))
+    Gamers = pygame.transform.scale(pygame.image.load("DustinAidan.jpg"),(200,200))
+    Undertale = pygame.transform.scale(pygame.image.load("Undertale.png"),(200,200))
+    ProtoLab = pygame.transform.scale(pygame.image.load("ProtoLab.png"),(200,200))
+    Lowes = pygame.transform.scale(pygame.image.load("Lowes.png"),(200,200))
+    Pygame = pygame.transform.scale(pygame.image.load("Pygame.gif"),(400,200))
+    Zeus = pygame.transform.scale(pygame.image.load("Zeus.jpg"),(400,400))
     showtime = True
     inputCooldown = 0
     if (scene == "shop"):
         jukebox("menu1.mp3")
     elif (scene == "lose"):
         jukebox("death1.mp3")
-    elif (scene == "levelEnd"):
+    elif (scene == "levelEnd" or scene == "credits"):
+        jukebox("credits.mp3")
+    elif (scene== "preboss" or scene == "midboss2"):
         jukebox("bossIntro.mp3")
     #a similar approach to the title for controlling, uses a minigame loop.
     while showtime:
@@ -1110,10 +1121,12 @@ def cutscene(scene):
                 gameDisplay.blit(line1,(25,425))
             elif (sceneStage ==2):
                 line1=medText.render("Game by Dustin Smith and Aidan Weinreber!",True,(0,0,0))
+                gameDisplay.blit(Gamers,(300,100))
                 gameDisplay.blit(TextBack,(0,400))
                 gameDisplay.blit(line1,(25,425))
             elif (sceneStage ==3):
                 line1=medText.render("Music taken from Undertale (play it!)",True,(0,0,0))
+                gameDisplay.blit(Undertale,(300,100))
                 gameDisplay.blit(TextBack,(0,400))
                 gameDisplay.blit(line1,(25,425))
             elif (sceneStage ==4):
@@ -1122,14 +1135,17 @@ def cutscene(scene):
                 gameDisplay.blit(line1,(25,425))
             elif (sceneStage ==5):
                 line1=medText.render("Run on the great pygame python module!",True,(0,0,0))
+                gameDisplay.blit(Pygame,(200,100))
                 gameDisplay.blit(TextBack,(0,400))
                 gameDisplay.blit(line1,(25,425))
             elif (sceneStage ==6):
                 line1=medText.render("Special thanks to the prototyping lab",True,(0,0,0))
+                gameDisplay.blit(ProtoLab,(300,100))
                 gameDisplay.blit(TextBack,(0,400))
                 gameDisplay.blit(line1,(25,425))
             elif (sceneStage ==7):
                 line1=medText.render("and to Lowes for making this box possible.",True,(0,0,0))
+                gameDisplay.blit(Lowes,(300,100))
                 gameDisplay.blit(TextBack,(0,400))
                 gameDisplay.blit(line1,(25,425))
             elif (sceneStage ==8):
@@ -1138,6 +1154,7 @@ def cutscene(scene):
                 gameDisplay.blit(line1,(25,425))
             elif (sceneStage ==9):
                 line1=medText.render("In Loving Memory of Zeus.",True,(0,0,0))
+                gameDisplay.blit(Zeus,(200,50))
                 gameDisplay.blit(TextBack,(0,400))
                 gameDisplay.blit(line1,(25,425))
             elif (sceneStage ==10):
@@ -1183,12 +1200,14 @@ def shop():
     #the shop intro cutscene
     if (level == 1):
         cutscene("shop")
-    songSelect = randint(1,11)
+    songSelect = randint(1,16)
     if (songSelect>=1 and songSelect <=5):
         jukebox("shop1.mp3")
     elif (songSelect>=6 and songSelect <=10):
         jukebox("shop2.mp3")
-    elif (songSelect>10):
+    elif (songSelect>=11 and songSelect <=15):
+        jukebox("shop3.mp3")
+    elif (songSelect>15):
         jukebox("shopRare.mp3")
     while(shopping):
         gameDisplay.blit(shopFront,(0,TOPBORDER))
@@ -1811,4 +1830,5 @@ medText = pygame.font.SysFont('Arial MS', 50)
 global tinyText
 tinyText = pygame.font.SysFont('Arial MS', 25)
 #starts the chain of all game windows by calling the title screen
+cutscene("credits")
 titleScreen()
