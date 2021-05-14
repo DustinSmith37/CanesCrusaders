@@ -1,0 +1,17 @@
+Joystick and buttons ($40)
+Wood for case($15)
+Four cabinet knobs($8)
+Felt bottoms($8)
+2 Hinges ($10)
+Deadbolt ($5)
+Screws and Bolts ($10)
+Washers ($10)
+Speaker ($25)
+Audio aux cord ($5)
+Portable battery ($15)
+
+Libraries used
+Pygame
+os
+RPi.GPIO
+time
